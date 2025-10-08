@@ -5,11 +5,10 @@ primarily array manipulations
 
 # External Imports
 import numpy as np
-from numpy.typing import NDArray
 import torch
 
 
-def raw_to_metapixels(image_arr: NDArray) -> NDArray:
+def raw_to_metapixels(image_arr):
     """
     Converts an image array into an array of 2x2 metapixels
     """
@@ -18,7 +17,7 @@ def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     return metapx_arr
 
 
-def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
+def raw_to_metapixels_3d(image_arr):
     """
     Converts a stack of image arrays into a stack of arrays of 2x2 metapixels
     """
@@ -27,7 +26,7 @@ def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
     return metapx_arr
 
 
-def metapixels_to_raw(metapx_arr: NDArray) -> NDArray:
+def metapixels_to_raw(metapx_arr):
     """
     Converts an array of 2x2 metapixels back into the original image array
     """
@@ -36,7 +35,7 @@ def metapixels_to_raw(metapx_arr: NDArray) -> NDArray:
     return image_arr
 
 
-def metapixels_to_raw_3d(metapx_arr: NDArray) -> NDArray:
+def metapixels_to_raw_3d(metapx_arr):
     """
     Converts a stack of arrays of 2x2 metapixels back into the original image array stack
     """
@@ -45,7 +44,7 @@ def metapixels_to_raw_3d(metapx_arr: NDArray) -> NDArray:
     return image_arr
 
 
-def metapixels_to_pixel_list(metapx_arr: NDArray) -> tuple[NDArray, NDArray, NDArray, NDArray]:
+def metapixels_to_pixel_list(metapx_arr):
     """
     Converts an array of 2x2 metapixels into 4 arrays, one for each of the corners
     """
@@ -60,7 +59,7 @@ def metapixels_to_pixel_list(metapx_arr: NDArray) -> tuple[NDArray, NDArray, NDA
     return top_left, top_right, bottom_left, bottom_right
 
 
-def pixel_list_to_metapixels(top_left: NDArray, top_right: NDArray, bottom_left: NDArray, bottom_right: NDArray, H: int, W: int):
+def pixel_list_to_metapixels(top_left, top_right, bottom_left, bottom_right, H, W):
     """
     Converts arrays for all the metapixel corners into a an array of 2x2 metapixels
     """
@@ -77,7 +76,7 @@ def pixel_list_to_metapixels(top_left: NDArray, top_right: NDArray, bottom_left:
     return metapx_arr
 
 
-def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
+def describe(arr):
     """
     Computes the minimum, maximum, Q1, Q2 and Q3 of an array
     """
@@ -90,7 +89,7 @@ def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
     return minimum, Q1, Q2, Q3, maximum
 
 
-def cuda_check() -> None:
+def cuda_check():
     availability = torch.cuda.is_available()
     name = torch.cuda.get_device_name(0)
 
