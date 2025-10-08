@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QGraphicsView, QFileDialog, QGraphicsPixmapItem
 from PyQt6.QtGui import QPainter, QPixmap
-from PyQt6.QtCore import Qt
+import PyQt6
+
 
 class ImageView(QGraphicsView):
     def __init__(self, parent=None):
@@ -19,8 +20,8 @@ class ImageView(QGraphicsView):
 
     def wheelEvent(self, event):
         """Zoom with mouse wheel"""
-        zoom_in_factor = 1.25
-        zoom_out_factor = 1 / zoom_in_factor
+        zoom_in_factor: float = 1.25
+        zoom_out_factor: float = 1 / zoom_in_factor
 
         old_pos = self.mapToScene(event.position().toPoint())
 
@@ -31,12 +32,12 @@ class ImageView(QGraphicsView):
             zoom_factor = zoom_out_factor
             self._zoom -= 1
 
-        # Prevent zooming too far
+        # Prevent zooming too far out or in
         if self._zoom < -5:
             self._zoom = -5
             return
-        if self._zoom > 15:
-            self._zoom = 15
+        if self._zoom > 20:
+            self._zoom = 20
             return
 
         self.scale(zoom_factor, zoom_factor)
