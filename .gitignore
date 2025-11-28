@@ -102,6 +102,7 @@ resources/cache/
 cache/
 tmp/
 output/
+out/
 
 # Intermediate data
 *.npy
@@ -117,3 +118,4 @@ logs/
 config_local.yaml
 *.local.json
 *.local.yaml
+

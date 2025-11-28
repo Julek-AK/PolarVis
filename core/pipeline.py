@@ -4,8 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from processing.torch_backend import resolve_intensities
-
+from processing.torch_backend import resolve_intensities, analytic_resolve_metapixels
+from core.utils import raw_to_metapixel_list
 
 class PipelineWorker(QThread):
     """Threaded worker for safely processing an image"""
@@ -17,14 +17,23 @@ class PipelineWorker(QThread):
         self.img_array = img_array
         self.device = device
 
+    # def run(self):
+    #     from processing.torch_backend import resolve_intensities
+    #     try:
+    #         sol_array = resolve_intensities(self.img_array, self.device, test=False, verbose=True)
+    #         self.finished.emit(sol_array)
+    #     except Exception as e:
+    #         self.error.emit(str(e))
+
+    # Support for ChatGPT code for proceesing
     def run(self):
-        from processing.torch_backend import resolve_intensities
+        from processing.torch_backend import analytic_resolve_metapixels
         try:
-            sol_array = resolve_intensities(self.img_array, self.device, test=False, verbose=True)
+            img_array_metapix = raw_to_metapixel_list(self.img_array)
+            sol_array = analytic_resolve_metapixels(img_array_metapix, self.device)
             self.finished.emit(sol_array)
         except Exception as e:
             self.error.emit(str(e))
-
 
 class Pipeline():
     """Maintains system architecture for image processing"""

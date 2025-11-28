@@ -6,8 +6,7 @@ primarily array manipulations
 # External Imports
 import numpy as np
 from numpy.typing import NDArray
-import torch
-
+from torch import cuda
 
 def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     """
@@ -17,6 +16,17 @@ def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     metapx_arr = image_arr.reshape(H // 2, 2, W // 2, 2).swapaxes(1, 2)
     return metapx_arr
 
+def raw_to_metapixel_list(image_arr: NDArray) -> NDArray:
+    """
+    Converts an image array into an array of 4-length lists for metapixels
+    """
+    H, W = image_arr.shape
+    metapx_list_arr = (
+        image_arr.reshape(H // 2, 2, W // 2, 2)
+        .swapaxes(1, 2)
+        .reshape(H // 2, W // 2, 4)
+    )
+    return metapx_list_arr
 
 def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
     """
@@ -90,9 +100,36 @@ def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
     return minimum, Q1, Q2, Q3, maximum
 
 
+def simulate_image(data: NDArray) -> NDArray:
+    """
+    Simulates an expected image given the data about polarized and unpolarized intensity and angle
+    Note that this is NOT the exact definition of Malus' law, as in the camera sensor there is a polarized
+    filter in front of every pixel, which mandatorily halves the intensity of incoming unpolarized flux
+    """
+
+    N = data.shape[0]
+    assert data.shape == (N, N, 3), "data array must be of shape (data_size, data_size, 3)"
+
+    I_unpol = data[..., 0]
+    I_pol   = data[..., 1]
+    theta   = data[..., 2]
+
+    phi = np.array([np.pi/2, np.pi/4, -np.pi/4, 0.0])
+    out = np.zeros((2*N, 2*N), dtype=np.float32)
+
+    cos_sq = np.cos(phi.reshape(1, 1, 4) - theta[..., None]) ** 2
+    I = 0.5 * I_unpol[..., None] + I_pol[..., None] * cos_sq
+
+    out[0::2, 0::2] = I[..., 0]
+    out[0::2, 1::2] = I[..., 1]
+    out[1::2, 0::2] = I[..., 2]
+    out[1::2, 1::2] = I[..., 3]
+
+    return out
+
 def cuda_check() -> None:
-    availability = torch.cuda.is_available()
-    name = torch.cuda.get_device_name(0)
+    availability = cuda.is_available()
+    name = cuda.get_device_name(0)
 
     print(f"CUDA avaialable: {availability}")
     print(f"Used device: {name}")
