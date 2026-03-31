@@ -14,13 +14,14 @@ import unicodedata
 from numpy.typing import NDArray
 import numpy as np
 from PyQt6.QtWidgets import QWidget, QFileDialog
+from PyQt6 import QtCore
 
 # Internal support
 from paths import CACHE_DIR
 
 
 
-class CacheManager:
+class CacheManager(QtCore.QObject):
     """
     - ensures the cache exists and only contains the files it's supposed to
     - allows to preview the contents of the cache
@@ -32,7 +33,10 @@ class CacheManager:
     - recovers results if processing is attempted for an already cached file
     - provides the files for displaying
     """
+    cacheChanged = QtCore.pyqtSignal()
+    
     def __init__(self, max_size_mb: int = 500) -> None:
+        super().__init__()
         self.cache_dir = CACHE_DIR
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -68,14 +72,38 @@ class CacheManager:
         except Exception as e:
             print(f"[CacheManager] Failed to save ID '{ID}': {e}")
             temp.unlink(missing_ok=True)
+        
+        self.cacheChanged.emit()
 
     def clear(self, confirm=False):
+        """Removes every file in the cache"""
+        if not confirm:
+            return
+        
+        for file in self.cache_dir.iterdir():
+            if file.is_file():
+                file.unlink()
+
+        self.cacheChanged.emit()
+
+    def get_stats(self):
+        """Generates statistics of the cache for user information"""
+        files = list(self.cache_dir.iterdir())
+
+        total_size = sum(
+            f.stat().st_size for f in files if f.is_file()
+        )
+
+        return {
+            "file_count": sum(f.is_file() for f in files),
+            "total_size_bytes": total_size,
+            "path": self.cache_dir,
+        }
+
+    def _get_size(self):
         raise NotImplementedError
     
-    def get_size(self):
-        raise NotImplementedError
-    
-    def check_size(self):
+    def _check_size(self):
         raise NotImplementedError
 
     # Internal helpers
@@ -86,6 +114,8 @@ class CacheManager:
         """Removes outdated temporary files"""
         for file in self.cache_dir.glob("*.temp.npy"):
             file.unlink(missing_ok=True)
+
+        self.cacheChanged.emit()
 
     def _get_filename(self, ID: str, suffix: str=".npy") -> Path:
         """Generates a canonical filename for a given ID"""
@@ -166,7 +196,7 @@ class ImageFileManager:
         raise NotImplementedError
 
     def unlock_folder(self, path: Path) -> None:
-        """Unlocks the folder (after editing has finished)"""
+        """Unlocks the folder (after processing has finished)"""
         raise NotImplementedError
 
     def save_output(self, array: NDArray, name: str, format: str = '.npy') -> None:

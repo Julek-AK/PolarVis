@@ -50,6 +50,7 @@ class VisualisationPanel(QtWidgets.QFrame):
         """Provide the managers after UI load."""
         self.cache_manager = cache_manager
         self.file_manager = file_manager
+        self.cache_manager.cacheChanged.connect(self.refresh_cache_list)
         self.refresh_cache_list()
 
     # =============================================
@@ -72,7 +73,7 @@ class VisualisationPanel(QtWidgets.QFrame):
 
         image = generate_visualisation(vis_name, self.current_array)
         self.current_image = image
-        self.main_window.graphicsView.display_pil_image(self.main_window, self.current_image)
+        self.image_view.display_pil_image(self.main_window, self.current_image)
 
     def on_pixel_hovered(self, x: int, y: int):
         if self.current_file is None:

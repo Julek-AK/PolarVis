@@ -94,17 +94,21 @@ class ImageView(QGraphicsView):
         if pil_image.mode != "RGB":
             pil_image = pil_image.convert("RGB")
 
-        data = pil_image.tobytes("raw", "RGB")
+        # Handling of misbehaving memory allocation
+        width, height = pil_image.size
+        bytes_per_line = 3 * width
+
         qimage = QImage(
-            data,
-            pil_image.width,
-            pil_image.height,
+            pil_image.tobytes(),
+            width,
+            height,
+            bytes_per_line,
             QImage.Format.Format_RGB888
-        )
+        ).copy()  # Copy to, again, handle misbehaving memory
         
         pixmap = QPixmap.fromImage(qimage)
-        self._pixmap_item = QGraphicsPixmapItem(pixmap)
         self._show_pixmap(window, pixmap)
+
 
     def _show_pixmap(self, window, pixmap: QPixmap) -> None:
         """Internal helper to clear the scene and show a pixmap"""
@@ -112,7 +116,9 @@ class ImageView(QGraphicsView):
             raise ValueError("[ImageView] No QGraphicsScene assigned to window")
 
         window.scene.clear()
-        item = QGraphicsPixmapItem(pixmap)
-        window.scene.addItem(item)
-        # self._zoom = 0
-        # self.resetTransform()
+        self._pixmap_item = QGraphicsPixmapItem(pixmap)
+        self._pixmap_item.setAcceptedMouseButtons(QtCore.Qt.MouseButton.NoButton)  # To allow left-click panning
+        window.scene.addItem(self._pixmap_item)
+
+        self.resetTransform()
+        self._zoom = 0

@@ -70,8 +70,16 @@ def run_tests():
         
 
 if __name__ == '__main__':
-    # run_main_window()
+    run_main_window()
 
-    run_tests()
+    # run_tests()
 
+    # import numpy as np
+    # from processing.visualisation import pure_DoLP
+    # 9_20260114_124630
+    # 13_20260114_123537
 
+    # arr = np.load(r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\PolarVis\.cache\9_20260114_124630.npy")
+
+    # img = pure_DoLP(arr)
+    # img.save(r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\PolarVis\.cache\9_20260114_124630.png")

@@ -8,29 +8,40 @@ import numpy as np
 from numpy.typing import NDArray
 from torch import cuda
 
+# TODO huge risk that some polarized filter angles and channel ordering is ambiguous
+
 def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     """
-    Converts an image array into an array of 2x2 metapixels
+    Convert an image array into an array of 2x2 metapixels
     """
     H, W = image_arr.shape
     metapx_arr = image_arr.reshape(H // 2, 2, W // 2, 2).swapaxes(1, 2)
     return metapx_arr
 
-def raw_to_metapixel_list(image_arr: NDArray) -> NDArray:
+def raw_to_metapixel_channels(image_arr: NDArray) -> NDArray: 
     """
-    Converts an image array into an array of 4-length lists for metapixels
+    Convert raw image to (H//2, W//2, 4) metapixels
+    Channel order:
+      * 0 = (0,0) top-left
+      * 1 = (0,1) top-right
+      * 2 = (1,0) bottom-left
+      * 3 = (1,1) bottom-right
     """
     H, W = image_arr.shape
-    metapx_list_arr = (
-        image_arr.reshape(H // 2, 2, W // 2, 2)
-        .swapaxes(1, 2)
-        .reshape(H // 2, W // 2, 4)
-    )
-    return metapx_list_arr
+    assert H % 2 == 0 and W % 2 == 0
+
+    out = np.empty((H // 2, W // 2, 4), dtype=image_arr.dtype)
+
+    out[..., 0] = image_arr[0::2, 0::2]
+    out[..., 1] = image_arr[0::2, 1::2]
+    out[..., 2] = image_arr[1::2, 0::2]
+    out[..., 3] = image_arr[1::2, 1::2]
+
+    return out
 
 def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
     """
-    Converts a stack of image arrays into a stack of arrays of 2x2 metapixels
+    Convert a stack of image arrays into a stack of arrays of 2x2 metapixels
     """
     H, W, N = image_arr.shape
     metapx_arr = image_arr.reshape(H // 2, 2, W // 2, 2, N).swapaxes(1, 2)
@@ -39,7 +50,7 @@ def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
 
 def metapixels_to_raw(metapx_arr: NDArray) -> NDArray:
     """
-    Converts an array of 2x2 metapixels back into the original image array
+    Convert an array of 2x2 metapixels back into the original image array
     """
     H, W, _, _ = metapx_arr.shape
     image_arr = metapx_arr.swapaxes(1, 2).reshape(H * 2, W * 2)
@@ -48,7 +59,7 @@ def metapixels_to_raw(metapx_arr: NDArray) -> NDArray:
 
 def metapixels_to_raw_3d(metapx_arr: NDArray) -> NDArray:
     """
-    Converts a stack of arrays of 2x2 metapixels back into the original image array stack
+    Convert a stack of arrays of 2x2 metapixels back into the original image array stack
     """
     H, W, _, _, N = metapx_arr.shape
     image_arr = metapx_arr.swapaxes(1, 2).reshape(H * 2, W * 2, N)
@@ -57,7 +68,7 @@ def metapixels_to_raw_3d(metapx_arr: NDArray) -> NDArray:
 
 def metapixels_to_pixel_list(metapx_arr: NDArray) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """
-    Converts an array of 2x2 metapixels into 4 arrays, one for each of the corners
+    Convert an array of 2x2 metapixels into 4 arrays, one for each of the corners
     """
     H, W, _, _ = metapx_arr.shape
     flat = metapx_arr.reshape(-1, 2, 2)
@@ -72,7 +83,7 @@ def metapixels_to_pixel_list(metapx_arr: NDArray) -> tuple[NDArray, NDArray, NDA
 
 def pixel_list_to_metapixels(top_left: NDArray, top_right: NDArray, bottom_left: NDArray, bottom_right: NDArray, H: int, W: int):
     """
-    Converts arrays for all the metapixel corners into a an array of 2x2 metapixels
+    Convert arrays for all the metapixel corners into a an array of 2x2 metapixels
     """
     N = H * W
 
@@ -89,7 +100,7 @@ def pixel_list_to_metapixels(top_left: NDArray, top_right: NDArray, bottom_left:
 
 def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
     """
-    Computes the minimum, maximum, Q1, Q2 and Q3 of an array
+    Compute the minimum, maximum, Q1, Q2 and Q3 of an array
     """
     minimum = np.min(arr)
     Q1 = np.percentile(arr, 25)
@@ -102,7 +113,7 @@ def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
 
 def simulate_image(data: NDArray) -> NDArray:
     """
-    Simulates an expected image given the data about polarized and unpolarized intensity and angle
+    Simulate an expected image given the data about polarized and unpolarized intensity and angle
     Note that this is NOT the exact definition of Malus' law, as in the camera sensor there is a polarized
     filter in front of every pixel, which mandatorily halves the intensity of incoming unpolarized flux
     """
@@ -120,10 +131,10 @@ def simulate_image(data: NDArray) -> NDArray:
     cos_sq = np.cos(phi.reshape(1, 1, 4) - theta[..., None]) ** 2
     I = 0.5 * I_unpol[..., None] + I_pol[..., None] * cos_sq
 
-    out[0::2, 0::2] = I[..., 0]
-    out[0::2, 1::2] = I[..., 1]
-    out[1::2, 0::2] = I[..., 2]
-    out[1::2, 1::2] = I[..., 3]
+    out[0::2, 0::2] = I[..., 0]  # top-left
+    out[0::2, 1::2] = I[..., 1]  # top-right
+    out[1::2, 0::2] = I[..., 2]  # bottom-left
+    out[1::2, 1::2] = I[..., 3]  # bottom-right
 
     return out
 
