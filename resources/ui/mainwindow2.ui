@@ -218,23 +218,89 @@
     <addaction name="actionSingle_Processing"/>
     <addaction name="actionBatch_Processing"/>
    </widget>
+   <widget class="QMenu" name="menuCache">
+    <property name="title">
+     <string>Cache</string>
+    </property>
+    <addaction name="actionInfoCache"/>
+    <addaction name="actionBrowseCache"/>
+    <addaction name="actionClearCache"/>
+   </widget>
+   <widget class="QMenu" name="menuCalibration">
+    <property name="title">
+     <string>Calibration</string>
+    </property>
+    <addaction name="actionInfo"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionCompute_Calibration"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuProcessing"/>
+   <addaction name="menuCalibration"/>
+   <addaction name="menuCache"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLoad_Image">
    <property name="text">
     <string>Load Image</string>
    </property>
+   <property name="whatsThis">
+    <string>Load any image for viewing</string>
+   </property>
   </action>
   <action name="actionSingle_Processing">
    <property name="text">
     <string>Single Processing</string>
    </property>
+   <property name="whatsThis">
+    <string>Select an image for processing</string>
+   </property>
   </action>
   <action name="actionBatch_Processing">
    <property name="text">
     <string>Batch Processing</string>
+   </property>
+   <property name="whatsThis">
+    <string>Select a folder of images for processing</string>
+   </property>
+  </action>
+  <action name="actionInfoCache">
+   <property name="text">
+    <string>Info</string>
+   </property>
+   <property name="whatsThis">
+    <string>Display information about cache contents</string>
+   </property>
+  </action>
+  <action name="actionBrowseCache">
+   <property name="text">
+    <string>Browse</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open cache directory</string>
+   </property>
+  </action>
+  <action name="actionClearCache">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+   <property name="whatsThis">
+    <string>Empty cache contents</string>
+   </property>
+  </action>
+  <action name="actionInfo">
+   <property name="text">
+    <string>Info</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionCompute_Calibration">
+   <property name="text">
+    <string>Compute Calibration</string>
    </property>
   </action>
  </widget>

@@ -9,11 +9,12 @@ import sys
 from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout
 
 # Internal Support
+from streams import TeeStream
 from core.pipeline import Pipeline
 from core.console_redirector import ConsoleRedirector
 from core.file_manager import ImageFileManager, CacheManager
+from core.calibration_manager import CalibrationManager
 from gui.visualisation_panel import VisualisationPanel
-
 
 
 class MainWindowConstructor:
@@ -24,34 +25,45 @@ class MainWindowConstructor:
     # INITIALIZATION FUNCTIONS
     # =============================================
     def setup(self):
-        self.init_menu_bar()
-        self.init_console()
-        self.init_image_display()
-        
         # currently placeholders
         self.init_file_managers()
         self.init_pipelines()
         self.init_visualisation()
 
-    def init_console(self):
-        self.window.stdout_redirector = ConsoleRedirector()
-        self.window.stderr_redirector = ConsoleRedirector()
+        self.init_menu_bar()
+        self.init_console()
+        self.init_image_display()
 
-        self.window.stdout_redirector.new_text.connect(self.window.append_console_text)
-        self.window.stderr_redirector.new_text.connect(
+    def init_console(self):
+        gui_stdout = ConsoleRedirector()
+        gui_stderr = ConsoleRedirector()
+
+        gui_stdout.new_text.connect(self.window.append_console_text)
+        gui_stderr.new_text.connect(
             lambda text: self.window.append_console_text(f"[Error] {text}")
         )
 
-        sys.stdout = self.window.stdout_redirector
-        sys.stderr = self.window.stderr_redirector
+        self.window.stdout_redirector = gui_stdout
+        self.window.stderr_redirector = gui_stderr
+
+        sys.stdout = TeeStream(sys.__stdout__, gui_stdout)
+        sys.stderr = TeeStream(sys.__stderr__, gui_stderr)
 
     def init_menu_bar(self):
-        # Image loading
+        # File
         self.window.actionLoad_Image.triggered.connect(self.window.load_raw_image)
 
-        # Image Processing
+        # Processing
         self.window.actionSingle_Processing.triggered.connect(self.window.run_single_process)
         self.window.actionBatch_Processing.triggered.connect(self.window.run_batch_process)
+
+        # Calibration
+        self.window.actionCompute_Calibration.triggered.connect(self.window.compute_calibration)
+
+        # Cache
+        self.window.actionInfoCache.triggered.connect(self.window.show_cache_info)
+        self.window.actionBrowseCache.triggered.connect(self.window.browse_cache)
+        self.window.actionClearCache.triggered.connect(self.window.clear_cache)
 
     def init_image_display(self):
         self.window.scene = QGraphicsScene(self.window)
@@ -60,6 +72,7 @@ class MainWindowConstructor:
     def init_file_managers(self):
         self.window.file_manager = ImageFileManager()
         self.window.cache_manager = CacheManager()
+        self.window.calibration_manager = CalibrationManager()
 
     def init_pipelines(self):
         self.window.pipeline = Pipeline()

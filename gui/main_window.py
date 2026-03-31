@@ -1,5 +1,7 @@
 # Builtins
+import os
 import sys
+import subprocess
 
 # External
 from PyQt6 import uic
@@ -9,6 +11,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
 from paths import UI_DIR
 
 from gui.pipeline_dialog import PipelineDialog
+from gui.calibration_dialog import CalibrationDialog
 from gui.window_init import MainWindowConstructor
 
 
@@ -23,8 +26,59 @@ class MainWindow(QMainWindow):
     # =============================================
     # CONSOLE
     # =============================================
+
     def append_console_text(self, text: str) -> None:
         self.consoleOutput.appendPlainText(text.strip())
+
+    # =============================================
+    # CACHE HANDLING
+    # =============================================
+
+    def show_cache_info(self) -> None:
+        stats = self.cache_manager.get_stats()
+
+        text = (
+            f"Cache location:\n{stats['path']}\n\n"
+            f"Files in cache: {stats['file_count']}\n"
+            f"Total size: {stats['total_size_bytes']/1000000:.2f} MB"
+        )
+
+        QMessageBox.information(self, "Cache Information", text)
+
+    def browse_cache(self) -> None:
+        path = str(self.cache_manager.cache_dir)
+
+        if sys.platform.startswith("win"):
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.run(["open", path])
+        else:
+            subprocess.run(["xdg-open", path])
+
+    def clear_cache(self) -> None:
+        reply = QMessageBox.warning(
+            self,
+            "Clear Cache",
+            "This will permanently delete all cached files.\n\n"
+            "This action cannot be undone.\n\n"
+            "Do you want to continue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.cache_manager.clear(confirm=True)
+
+    # =============================================
+    # CALIBRATION
+    # =============================================
+
+    def compute_calibration(self) -> None:
+
+            # Activate the dialog window        
+        dialog = CalibrationDialog(self.calibration_manager, self)
+        if dialog.exec() == 0:
+            return
 
 
     # =============================================
@@ -51,6 +105,9 @@ class MainWindow(QMainWindow):
         dialog = PipelineDialog(self)
         if dialog.exec() == 0:
             return
+        
+        # Retrieve processing parameters
+        window_size = dialog.get_window_size()
 
         def on_finished(sol_array):
             dialog.close()
@@ -62,8 +119,11 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", msg)
 
         # Initiate the pipeline
-        self.pipeline.single_process(img_arr, on_finished, on_error)
+        self.pipeline.single_process(img_arr, window_size, on_finished, on_error)
         dialog.show()
+
+        # Refresh the gui with new cache information
+        self.frame_view_filters.refresh_cache_list()
 
     def run_batch_process(self) -> None:
         raise NotImplementedError
