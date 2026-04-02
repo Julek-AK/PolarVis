@@ -22,7 +22,7 @@ class VisualisationPanel(QtWidgets.QFrame):
         self.current_file = None
         self.current_array = None
 
-        # --- UI setup ---
+        # UI setup
         layout = QtWidgets.QVBoxLayout(self)
 
         self.file_selector = QtWidgets.QComboBox()
@@ -37,10 +37,10 @@ class VisualisationPanel(QtWidgets.QFrame):
         layout.addWidget(self.preview_label, stretch=1)
         layout.addWidget(self.save_button)
 
-        # --- Populate selectors ---
+        # Populate selectors
         self.vis_selector.addItems(list_visualisations())
 
-        # --- Connect logic ---
+        # Connect logic
         self.vis_selector.currentIndexChanged.connect(self.update_preview)
         self.file_selector.currentIndexChanged.connect(self.update_preview)
         self.save_button.clicked.connect(self.save_current_visualisation)
@@ -82,9 +82,9 @@ class VisualisationPanel(QtWidgets.QFrame):
         if not (0 <= x < img_data.shape[1] and 0 <= y < img_data.shape[0]):
             return
 
-        i = img_data[y, x, 0] + img_data[y, x, 1]
-        d = img_data[y, x, 1] / max(i, 1e-8)
-        t = np.mod(img_data[y, x, 2], np.pi)
+        i = img_data[y, x, 0]
+        d = img_data[y, x, 1]
+        t = img_data[y, x, 2]
         self.pixelHovered.emit(float(i), float(d), float(t))
 
     # =============================================

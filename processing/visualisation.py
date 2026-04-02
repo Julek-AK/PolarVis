@@ -33,24 +33,12 @@ def cmap_to_img(img_arr, cmap):
     return img
 
 
-def normalize_arr(img_arr):
-    """
-    scales the array from 0-max to within 0-1
-    """
-    arr_norm = img_arr / np.max(img_arr)
-    arr_norm = np.clip(arr_norm, 0, 1)
-
-    return arr_norm
-
-
-def pure_intensity(img_data, cmap='magma'):
+def pure_intensity(img_data, cmap='gist_gray'):
     """
     Creates a pure colormap of image intensity
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    intensity_norm = normalize_arr(intensity)
-
-    image = cmap_to_img(intensity_norm, cmap)
+    intensity = img_data[..., 0]
+    image = cmap_to_img(intensity, cmap)
     return image
 
 
@@ -58,11 +46,8 @@ def pure_DoLP(img_data, cmap='viridis'):
     """
     Creates a pure colormap of image degree of linear polarization
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    dolp = img_data[..., 1] / intensity
-    dolp_norm = normalize_arr(dolp)  # Should be already normalized, but better make sure
-
-    image = cmap_to_img(dolp_norm, cmap)
+    dolp = img_data[..., 1]
+    image = cmap_to_img(dolp, cmap)
     return image
 
 
@@ -71,7 +56,7 @@ def pure_theta(img_data, cmap='hsv'):
     Creates a pure colormap of image polarization angle, from 0 to pi
     """
     angle = np.mod(img_data[..., 2], np.pi)
-    angle_norm = angle / np.pi
+    angle_norm = angle / np.pi  # Normalize to [0, 1]
 
     image = cmap_to_img(angle_norm, cmap)
     return image
@@ -81,10 +66,9 @@ def tinted_theta(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on polarization angle
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    brightness = normalize_arr(intensity)
+    brightness = img_data[..., 0]  # Intensity
 
-    angle = np.mod(img_data[..., 2], np.pi)
+    angle = np.mod(img_data[..., 2], np.pi)  # Theta
     saturation = angle / np.pi
 
     r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
@@ -99,11 +83,9 @@ def tinted_DoLP(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on degree of linear polarization
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    brightness = normalize_arr(intensity)
+    brightness = img_data[..., 0]  # Intensity
 
-    dolp = img_data[..., 1] / intensity
-    saturation = normalize_arr(dolp)  # Should be already normalized, but better make sure
+    saturation = img_data[..., 1]  # DOLP
 
     r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
     rgb = np.stack([r, g, b], axis=-1)
@@ -117,13 +99,11 @@ def polarimetric_colormap(img_data):
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    brightness = normalize_arr(intensity)
+    brightness = img_data[..., 0]  # Intensity
 
-    dolp = img_data[..., 1] / intensity
-    saturation = normalize_arr(dolp)  # Should be already normalized, but better make sure
+    saturation = img_data[..., 1]  # DOLP
 
-    angle = np.mod(img_data[..., 2], np.pi)
+    angle = np.mod(img_data[..., 2], np.pi)  # Theta
     hue = angle / np.pi
 
     r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
@@ -138,13 +118,11 @@ def polar_data(img_data):
     """
     Displays exclusively polarization data, neglecting original image brightness
     """
-    intensity = np.maximum(img_data[..., 0] + img_data[..., 1], 1E-8)
-    brightness = np.ones_like(intensity)  # Brightness override
+    brightness = np.ones_like(img_data[..., 0])  # Brightness override
 
-    dolp = img_data[..., 1] / intensity
-    saturation = normalize_arr(dolp)  # Should be already normalized, but better make sure
+    saturation = img_data[..., 1]  # DOLP
 
-    angle = np.mod(img_data[..., 2], np.pi)
+    angle = np.mod(img_data[..., 2], np.pi)  # Theta
     hue = angle / np.pi
 
     r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)

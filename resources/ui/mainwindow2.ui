@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>PolarVis</class>
+ <widget class="QMainWindow" name="PolarVis">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -24,12 +24,24 @@
     <item>
      <widget class="QFrame" name="frame_left">
       <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="leftMargin">
+        <number>7</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QFrame" name="frame_overview">
          <property name="frameShape">
@@ -80,12 +92,30 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>7</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QFrame" name="frame_view_window">
          <property name="sizePolicy">
@@ -101,6 +131,21 @@
           <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>7</number>
+          </property>
+          <property name="leftMargin">
+           <number>11</number>
+          </property>
+          <property name="topMargin">
+           <number>11</number>
+          </property>
+          <property name="rightMargin">
+           <number>11</number>
+          </property>
+          <property name="bottomMargin">
+           <number>11</number>
+          </property>
           <item>
            <widget class="ImageView" name="graphicsView">
             <property name="sizePolicy">
@@ -129,6 +174,21 @@
           <enum>QFrame::Shadow::Raised</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>7</number>
+          </property>
+          <property name="leftMargin">
+           <number>11</number>
+          </property>
+          <property name="topMargin">
+           <number>11</number>
+          </property>
+          <property name="rightMargin">
+           <number>11</number>
+          </property>
+          <property name="bottomMargin">
+           <number>11</number>
+          </property>
           <item>
            <widget class="QPlainTextEdit" name="consoleOutput">
             <property name="sizePolicy">
@@ -163,12 +223,24 @@
     <item>
      <widget class="QFrame" name="frame_right">
       <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>7</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="VisualisationPanel" name="frame_view_filters">
          <property name="frameShape">
@@ -217,6 +289,7 @@
     </property>
     <addaction name="actionSingle_Processing"/>
     <addaction name="actionBatch_Processing"/>
+    <addaction name="actionVideo_Processing"/>
    </widget>
    <widget class="QMenu" name="menuCache">
     <property name="title">
@@ -301,6 +374,11 @@
   <action name="actionCompute_Calibration">
    <property name="text">
     <string>Compute Calibration</string>
+   </property>
+  </action>
+  <action name="actionVideo_Processing">
+   <property name="text">
+    <string>Video Processing</string>
    </property>
   </action>
  </widget>
