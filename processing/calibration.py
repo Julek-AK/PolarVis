@@ -2,7 +2,7 @@
 Computational procedure for calibrating the camera sensor using provided calibration cases
 """
 # Builtins
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 
 # Internal support
@@ -19,6 +19,10 @@ class Calibration:
     dark_frame: NDArray  # (H, W)
     flat_field: NDArray  # (H, W)
     stokes_reconstruction: NDArray  # (H//2, W//2, 3, 4)
+
+    resolution: Tuple[int, int]  # (H, W)
+    bit_depth: int
+    sensor_id: Optional[str] = None  # For future use
 
 
 @dataclass
@@ -40,6 +44,8 @@ class CalibrationConstructor:
         n_angle_cases = len(inp_data.angle_cases.keys())
         assert n_angle_cases >= 4, f"[Calibration] At least four angle calibration cases must be provided, {n_angle_cases} were given"
         
+        self.bit_depth = inp_data.bit_depth
+
         # Calculate the dark frame
         self.dark_frame = np.mean(inp_data.dark_frame, axis=-1)
 
@@ -111,16 +117,23 @@ class CalibrationConstructor:
         S = self.S  # (n_cases, 3)
 
         # Primary computation
-        A = np.einsum('pni,pnj->pij', I, I)
-        B = np.einsum('pni,nj->pij', I, S)
+        A = np.einsum('pni, pnj -> pij', I, I) # (n_metapixels, 4, 4)
+        B = np.einsum('pni, nj -> pij', I, S)  # (n_metapixels, 4, 3)
 
         A += 1e-8 * np.eye(4)[None, :, :]
         A_inv = np.linalg.inv(A)
-        C_t = np.einsum('pij,pjk->pik', A_inv, B)
+        C_t = np.einsum('pij, pjk -> pik', A_inv, B)  # (n_metapixels, 4, 3)
 
         M = np.transpose(C_t, (0,2,1))  # (n_metapixels, 3, 4)
-        self.M = M.reshape(self.H//2, self.W//2, 3, 4)  # (H//2, W/2, 3, 4)
+        self.M = M.reshape(self.H//2, self.W//2, 3, 4)  # (H//2, W//2, 3, 4)
 
-        self.calibration = Calibration(self.dark_frame, self.flat_field, self.M)
+        self.calibration = Calibration(
+            self.dark_frame,
+            self.flat_field,
+            self.M,
+            self.dark_frame.shape,
+            self.bit_depth
+        )
+        
         return self.calibration
     

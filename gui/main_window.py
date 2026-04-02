@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
 
     def compute_calibration(self) -> None:
 
-            # Activate the dialog window        
+        # Activate the dialog window        
         dialog = CalibrationDialog(self.calibration_manager, self)
         if dialog.exec() == 0:
             return
@@ -89,37 +89,51 @@ class MainWindow(QMainWindow):
         # File management
         filename = self.file_manager.select_file(self)
         if not filename:
-            QMessageBox.warning(self, "No File", "No valid file selected.")
             return
         
-        ID = self.file_manager.get_id(filename)
+        img_id = self.file_manager.get_id(filename)
         img_arr = self.file_manager.load_image(filename)
-
-        # Check the cache
-        cached = self.cache_manager.get_array(ID)
-        if cached is not None:
-            QMessageBox.information(self, "Cached", f"Result for ID '{ID}' is available in the cache")
-            return
 
         # Activate the dialog window        
         dialog = PipelineDialog(self)
         if dialog.exec() == 0:
             return
         
-        # Retrieve processing parameters
-        window_size = dialog.get_window_size()
+        # Calibration
+        cal_id = dialog.get_calibration_id()
+        # cal = self.calibration_manager.load_calibration(cal_id)
+        cal, _ = self.calibration_manager.load_calibration("Default_factory_NA")
 
+        # Check the cache
+        ID = f"{img_id}__{cal_id}" 
+        cached = self.cache_manager.get_array(ID)
+        if cached is not None:
+            QMessageBox.information(self, "Cache hit!", f"Result for ID '{ID}' is available in the cache")
+            return
+
+        # Callbacks
         def on_finished(sol_array):
-            dialog.close()
+             
             self.cache_manager.save_array(ID, sol_array)
+            dialog.close()
             QMessageBox.information(self, "Success", f"Saved results for ID '{ID}'")
 
         def on_error(msg):
             dialog.close()
             QMessageBox.critical(self, "Error", msg)
 
+        def on_warning(msg):
+            QMessageBox.warning(self, "Warning", msg)
+
         # Initiate the pipeline
-        self.pipeline.single_process(img_arr, window_size, on_finished, on_error)
+        self.pipeline.single_process(
+            img_arr,
+            cal,
+            on_finished,
+            on_error,
+            on_warning,
+        )
+
         dialog.show()
 
         # Refresh the gui with new cache information
@@ -128,6 +142,8 @@ class MainWindow(QMainWindow):
     def run_batch_process(self) -> None:
         raise NotImplementedError
 
+    def run_video_process(self) -> None:
+        raise NotImplementedError
 
     # =============================================
     # IMAGE VISUALISATION

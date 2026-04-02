@@ -1,29 +1,31 @@
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QSpinBox
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QComboBox
+
 
 class PipelineDialog(QDialog):
     # TODO transfer UI construction into a self-contained .ui file
     # TODO add verbosity selection
 
-    def __init__(self, parent=None):
+    def __init__(self, calibration_manager, parent=None):
         super().__init__(parent)
+        self.calibration_manager = calibration_manager
+
         self.setModal(True)
         self.setWindowTitle("Run Pipeline")
         self.setFixedSize(300, 180)
 
         layout = QVBoxLayout()
+        window_layout = QHBoxLayout()
 
         self.label = QLabel("Run image processing?")
 
-        # Sliding window size selector
-        window_layout = QHBoxLayout()
-        window_label = QLabel("Window size:")
-        self.window_size_spin = QSpinBox()
-        self.window_size_spin.setRange(2, 10)
-        self.window_size_spin.setValue(2)
-        self.window_size_spin.setSingleStep(1)
+        # Calibration selection
+        cal_layout = QHBoxLayout()
+        cal_label = QLabel("Calibration:")
 
-        window_layout.addWidget(window_label)
-        window_layout.addWidget(self.window_size_spin)
+        self.calibration_combo = QComboBox()
+
+        cal_layout.addWidget(cal_label)
+        cal_layout.addWidget(self.calibration_combo)
 
         self.run_btn = QPushButton("Run")
         self.cancel_btn = QPushButton("Cancel")
@@ -33,7 +35,7 @@ class PipelineDialog(QDialog):
         self.progress.hide()
 
         layout.addWidget(self.label)
-        layout.addLayout(window_layout)
+        layout.addLayout(cal_layout)
         layout.addWidget(self.run_btn)
         layout.addWidget(self.cancel_btn)
         layout.addWidget(self.progress)
@@ -50,6 +52,21 @@ class PipelineDialog(QDialog):
         self.progress.show()
         self.accept()
 
-    def get_window_size(self) -> int:
-        """Expose selected window size"""
-        return self.window_size_spin.value()
+    def _populate_calibrations(self):
+        cal_ids = self.calibration_manager.list_calibrations()
+
+        if not cal_ids:
+            self.calibration_combo.addItem("No calibrations available")
+            self.calibration_combo.setEnabled(False)
+            return
+
+        self.calibration_combo.addItems(cal_ids)
+
+        # Set default
+        default_id = self.calibration_manager.get_default()
+        index = self.calibration_combo.findText(default_id)
+        if index >= 0:
+            self.calibration_combo.setCurrentIndex(index)
+
+    def get_calibration_id(self) -> str:
+        return self.calibration_combo.currentText()

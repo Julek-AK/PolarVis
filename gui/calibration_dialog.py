@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from typing import Dict, Optional
+from datetime import datetime
 
 # Internal
 from processing.calibration import CalibrationInput
@@ -28,11 +29,11 @@ class CalibrationWorker(QtCore.QThread):
         self.metadata = metadata
 
     def run(self):
-        # try:
-        cal = self.manager.calibrate(self.cal_input)
-        self.finished.emit(cal, self.metadata)
-        # except Exception as e:
-            # self.failed.emit(str(e))
+        try:
+            cal, metadata = self.manager.calibrate(self.cal_input, self.metadata)
+            self.finished.emit(cal, metadata)
+        except Exception as e:
+            self.failed.emit(str(e))
 
 
 class CalibrationDialog(QDialog):
@@ -48,6 +49,8 @@ class CalibrationDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Metadata inputs
+        self.name = QLineEdit("My Calibration")
+
         self.sensor = QLineEdit("Blackfly S BFS-U3-51S5M")
 
         self.lens = QLineEdit("TECHSPEC 16mm C Series Fixed Focal Length Lens")
@@ -63,6 +66,9 @@ class CalibrationDialog(QDialog):
         self.bit_depth.setValue(8)
 
         self.angles = QLineEdit("0,45,90,135")
+
+        layout.addWidget(QLabel("Name"))
+        layout.addWidget(self.name)
 
         layout.addWidget(QLabel("Sensor model"))
         layout.addWidget(self.sensor)
@@ -100,6 +106,7 @@ class CalibrationDialog(QDialog):
         self.run_button = QPushButton("Run Calibration")
         self.run_button.clicked.connect(self._run_calibration)
         layout.addWidget(self.run_button)
+
 
     # Folder selector builder
     def _add_folder_selector(self, parent_layout, key, label):
@@ -214,6 +221,7 @@ class CalibrationDialog(QDialog):
             return
 
         metadata = {
+            'name': self.name.text(),
             'sensor_model': self.sensor.text(),
             'lens_model': self.lens.text(),
             'wavelength_filter': self.wavelength.text(),
@@ -239,7 +247,7 @@ class CalibrationDialog(QDialog):
         QMessageBox.information(self, "Success", "Calibration completed")
 
         # Save immediately (or emit signal instead)
-        self.manager.save_calibration(calibration, self)
+        self.manager.save_calibration(calibration, metadata)
         self.accept()
 
     def _on_failed(self, error_msg):
