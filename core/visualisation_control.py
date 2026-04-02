@@ -14,8 +14,8 @@ VISUALISATION_FUNCS = {
     "Pure Intensity": vis.pure_intensity,
     "Pure DoLP": vis.pure_DoLP,
     "Pure Theta": vis.pure_theta,
-    "Tinted Theta": vis.tinted_theta,
-    "Tinted DoLP": vis.tinted_DoLP,
+    # "Tinted Theta": vis.tinted_theta,  # Currently deprecated since this visualisation is awful to look at
+    # "Tinted DoLP": vis.tinted_DoLP,  # Currently deprecated since this visualisation is awful to look at
     "Polarimetric Colormap": vis.polarimetric_colormap,
     "Polar Data": vis.polar_data 
 }

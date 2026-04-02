@@ -25,8 +25,7 @@ class MainWindowConstructor:
     # INITIALIZATION FUNCTIONS
     # =============================================
     def setup(self):
-        # currently placeholders
-        self.init_file_managers()
+        self.init_managers()
         self.init_pipelines()
         self.init_visualisation()
 
@@ -56,6 +55,7 @@ class MainWindowConstructor:
         # Processing
         self.window.actionSingle_Processing.triggered.connect(self.window.run_single_process)
         self.window.actionBatch_Processing.triggered.connect(self.window.run_batch_process)
+        self.window.actionVideo_Processing.triggered.connect(self.window.run_video_process)
 
         # Calibration
         self.window.actionCompute_Calibration.triggered.connect(self.window.compute_calibration)
@@ -69,7 +69,7 @@ class MainWindowConstructor:
         self.window.scene = QGraphicsScene(self.window)
         self.window.graphicsView.setScene(self.window.scene)
 
-    def init_file_managers(self):
+    def init_managers(self):
         self.window.file_manager = ImageFileManager()
         self.window.cache_manager = CacheManager()
         self.window.calibration_manager = CalibrationManager()
@@ -83,11 +83,6 @@ class MainWindowConstructor:
 
         vis_panel.connect_managers(self.window.cache_manager, self.window.file_manager)
         vis_panel.pixelHovered.connect(info_panel.update_values)
-
-
-    # =============================================
-    # IMAGE PROCESSING
-    # =============================================
         
 
 
