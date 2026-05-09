@@ -19,6 +19,14 @@ from numpy.typing import NDArray, DTypeLike
 from PyQt6.QtWidgets import QWidget, QFileDialog
 from PyQt6 import QtCore
 
+# TODO improve robustness of metadata/config separation for calibration
+# TODO create seperate serializable config parameters that also get embedded in the .calib files
+# TODO serialize the used polarization model (sicne in the future many might be available)
+# TODO serialize the actual calibration method used (since in the future many might be available)
+
+
+FILE_FORMAT_VERSION = 1
+
 
 class CalibrationManager:
     """Orchestrates and manages loading, saving and computing calibration."""
@@ -35,7 +43,7 @@ class CalibrationManager:
                 {   
                     'name': "Default (factory)",
                     'file_type': "polarimeter_calibration",
-                    'format_version': 1,
+                    'format_version': FILE_FORMAT_VERSION,
                     'timestamp': "NA",
                     'shape': (2048, 2448),
                     'bit_depth': 8,
@@ -50,8 +58,8 @@ class CalibrationManager:
 
         # Update metadata
         metadata['file_type'] = "polarimeter_calibration"
-        metadata['format_version'] = 1
-        metadata['tiemstamp'] = datetime.now().isoformat()
+        metadata['format_version'] = FILE_FORMAT_VERSION
+        metadata['timestamp'] = datetime.now().isoformat()
         metadata['shape'] = cal.dark_frame.shape
 
         return cal, metadata
@@ -105,8 +113,8 @@ class CalibrationManager:
         if metadata.get('file_type') != "polarimeter_calibration":
             raise RuntimeError("[CalibrationManager] Attempted to load an unrecognised calibration file.")
 
-        if metadata.get('format_version') != 1:
-            raise ValueError(f"[CalibrationManager] Calibration supports format version 1, given: {metadata['format_version']}.")
+        if metadata.get('format_version') != FILE_FORMAT_VERSION:
+            raise ValueError(f"[CalibrationManager] Calibration supports format version f{FILE_FORMAT_VERSION}, given: {metadata['format_version']}.")
 
         calibration = Calibration(
             dark_frame=data['dark_frame'],
@@ -120,7 +128,18 @@ class CalibrationManager:
     
     def list_calibrations(self) -> List[str]:
         """Return a list of all .calib files stored in data/calibration."""
+        
+        calibrations = []
 
+        for file_path in self.cal_dir.glob("*.calib"):
+            if not file_path.is_file():
+                continue
+
+            calibrations.append(file_path.stem)
+
+        calibrations.sort(key=str.lower)
+
+        return calibrations
 
 
     def get_calibration_id(self, metadata: Dict) -> str:

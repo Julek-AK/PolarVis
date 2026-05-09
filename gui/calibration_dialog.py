@@ -10,7 +10,7 @@ from typing import Dict, Optional
 from datetime import datetime
 
 # Internal
-from processing.calibration import CalibrationInput
+from processing.calibration import CalibrationInput, PolarizerModel
 from core.calibration_manager import CalibrationManager
 
 
@@ -65,6 +65,11 @@ class CalibrationDialog(QDialog):
         self.bit_depth.setRange(8, 16)
         self.bit_depth.setValue(8)
 
+        self.extinction_ratio = QDoubleSpinBox()
+        self.extinction_ratio.setRange(1.0, 1e9)
+        self.extinction_ratio.setValue(1000.0)
+        self.extinction_ratio.setDecimals(1)
+
         self.angles = QLineEdit("0,45,90,135")
 
         layout.addWidget(QLabel("Name"))
@@ -84,6 +89,9 @@ class CalibrationDialog(QDialog):
 
         layout.addWidget(QLabel("Bit depth"))
         layout.addWidget(self.bit_depth)
+
+        layout.addWidget(QLabel("Calibration polarizer extinction ratio"))
+        layout.addWidget(self.extinction_ratio)
 
         layout.addWidget(QLabel("Angles [deg], comma separated"))
         layout.addWidget(self.angles)
@@ -201,14 +209,19 @@ class CalibrationDialog(QDialog):
         angle_cases = {}
         for key, path in self.paths.items():
             if key.startswith('angle_'):
-                angle = key.split("_")[1]
+                angle = float(key.split("_")[1])
                 angle_cases[angle] = load_stack(path)
+
+        polarizer = PolarizerModel(
+            self.extinction_ratio.value()
+        )
 
         return CalibrationInput(
             dark_frame=dark,
             flat_field=flat,
             angle_cases=angle_cases,
-            bit_depth=self.bit_depth.value()
+            bit_depth=self.bit_depth.value(),
+            polarization_model=polarizer,
         )
 
     # Run calibration
