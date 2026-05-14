@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>856</width>
+    <height>722</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -16,13 +16,31 @@
     <verstretch>10</verstretch>
    </sizepolicy>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>720</width>
+    <height>640</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>PolarVis</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,1">
     <item>
      <widget class="QFrame" name="frame_left">
+      <property name="minimumSize">
+       <size>
+        <width>160</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>320</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
       </property>
@@ -43,22 +61,14 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QFrame" name="frame_overview">
+        <widget class="CalibrationPanel" name="frame_calibration_panel">
          <property name="frameShape">
           <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
           <enum>QFrame::Shadow::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>File overview</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QVBoxLayout" name="verticalLayout_7"/>
         </widget>
        </item>
        <item>
@@ -222,6 +232,18 @@
     </item>
     <item>
      <widget class="QFrame" name="frame_right">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>320</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
       </property>
@@ -273,7 +295,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>856</width>
      <height>25</height>
     </rect>
    </property>
@@ -303,8 +325,7 @@
     <property name="title">
      <string>Calibration</string>
     </property>
-    <addaction name="actionInfo"/>
-    <addaction name="actionLoad"/>
+    <addaction name="actionInfoCalibration"/>
     <addaction name="actionCompute_Calibration"/>
    </widget>
    <addaction name="menuFile"/>
@@ -361,7 +382,7 @@
     <string>Empty cache contents</string>
    </property>
   </action>
-  <action name="actionInfo">
+  <action name="actionInfoCalibration">
    <property name="text">
     <string>Info</string>
    </property>
@@ -398,6 +419,12 @@
    <class>PixelInfoPanel</class>
    <extends>QFrame</extends>
    <header>gui.pixel_info_panel</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CalibrationPanel</class>
+   <extends>QFrame</extends>
+   <header>gui.calibration_panel</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

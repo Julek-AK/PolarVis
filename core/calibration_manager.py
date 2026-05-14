@@ -50,6 +50,21 @@ class CalibrationManager:
                 }
             )
 
+        self._metadata_cache: Dict[str, Dict] = {}
+
+    def refresh_metadata_cache(self):
+
+        self._metadata_cache.clear()
+
+        for cal_id in self.list_calibrations():
+
+            try:
+                metadata = self.load_calibration_metadata(cal_id)
+                self._metadata_cache[cal_id] = metadata
+
+            except Exception:
+                continue    
+
     def calibrate(self, cal_input: CalibrationInput, metadata: Dict) -> Tuple[Calibration, Dict]:
         """Execute the calibration pipeline."""
 
@@ -84,13 +99,16 @@ class CalibrationManager:
             raise ValueError(f"[CalibrationManager] Unsupported shape: {arr.shape}.")
         
         return arr
+    
+    def get_calibration_path(self, cal_id: str) -> Path:
+        return self.cal_dir / f"{cal_id}.calib"
 
     def save_calibration(self, calibration: Calibration, metadata: Dict):
         """Prepare the calibration file and metadata, then save it."""
 
         cal_id = self.get_calibration_id(metadata)
 
-        file_path = self.cal_dir / f"{cal_id}.calib"
+        file_path = self.get_calibration_path(cal_id)
 
         with open(file_path, "wb") as f:
             np.savez_compressed(
@@ -100,21 +118,53 @@ class CalibrationManager:
                 stokes_reconstruction=calibration.stokes_reconstruction,
                 metadata=json.dumps(metadata)
             )
+    
+    def validate_metadata(self, metadata: Dict):
+        if metadata.get('file_type') != "polarimeter_calibration":
+            raise RuntimeError(
+                "[CalibrationManager] Unrecognised calibration file."
+            )
+
+        version = metadata.get('format_version')
+
+        if version is None:
+            raise RuntimeError(
+                "[CalibrationManager] Missing format version."
+            )
+
+        if version != FILE_FORMAT_VERSION:
+            raise RuntimeError(
+                f"[CalibrationManager] Calibration file has format version {version}, only version {FILE_FORMAT_VERSION} is supported."
+            )
+        
+    def load_calibration_metadata(self, cal_id: str) -> Dict:
+        """Load only metadata from a calibration file."""
+
+        file_path = self.get_calibration_path(cal_id)
+
+        with np.load(file_path, allow_pickle=False) as data:
+
+            if 'metadata' not in data:
+                raise RuntimeError(
+                    f"[CalibrationManager] {cal_id} contains no metadata."
+                )
+
+            metadata = json.loads(data['metadata'].item())
+
+            self.validate_metadata(metadata)
+
+        return metadata
 
     def load_calibration(self, cal_id: str) -> Tuple[Calibration, Dict]:
         """Load a specified calibration file, check that it matches, and return it."""
         
-        file_path = self.cal_dir / f"{cal_id}.calib"
+        file_path = self.get_calibration_path(cal_id)
 
         data = np.load(file_path, allow_pickle=False)
-        metadata = json.loads(str(data['metadata']))
+        metadata = json.loads(data['metadata'].item())
 
         # Consistency validation
-        if metadata.get('file_type') != "polarimeter_calibration":
-            raise RuntimeError("[CalibrationManager] Attempted to load an unrecognised calibration file.")
-
-        if metadata.get('format_version') != FILE_FORMAT_VERSION:
-            raise ValueError(f"[CalibrationManager] Calibration supports format version f{FILE_FORMAT_VERSION}, given: {metadata['format_version']}.")
+        self.validate_metadata(metadata)
 
         calibration = Calibration(
             dark_frame=data['dark_frame'],
@@ -141,7 +191,6 @@ class CalibrationManager:
 
         return calibrations
 
-
     def get_calibration_id(self, metadata: Dict) -> str:
         """Return a filesystem-safe ID for the calibration file."""
 
@@ -159,10 +208,9 @@ class CalibrationManager:
         """Identify calibration files compatible with given image size."""
         compatible = []
 
-        for cal_id in self.list_calibrations():
-            cal, _ = self.load_calibration(cal_id)
+        for cal_id, metadata in self._metadata_cache.items():
 
-            if cal.resolution == img_shape:
+            if tuple(metadata.get('shape', ())) == img_shape:
                 compatible.append(cal_id)
 
         return compatible
@@ -223,3 +271,23 @@ class CalibrationManager:
             resolution=shape,
             bit_depth=8,
         )
+
+
+    def delete_calibration(self, cal_id: str):
+        path = self.get_calibration_path(cal_id)
+        if path.exists(): path.unlink()
+        self._metadata_cache.pop(cal_id, None)
+
+    def get_stats(self):
+        """Generates statistics of the calibration folder for user information"""
+        files = list(self.cal_dir.iterdir())
+
+        total_size = sum(
+            f.stat().st_size for f in files if f.is_file()
+        )
+
+        return {
+            "file_count": sum(f.is_file() for f in files),
+            "total_size_bytes": total_size,
+            "path": self.cal_dir,
+        }

@@ -89,7 +89,7 @@ class ImageView(QGraphicsView):
 
         self._show_pixmap(window, pixmap)
 
-    def display_pil_image(self, window, pil_image: Image.Image) -> None:
+    def display_pil_image(self, window, pil_image: Image.Image, preserve_view: bool = False) -> None:
         """Display an image from a PIL.Image (used for generated viusalisation)"""
         if pil_image.mode != "RGB":
             pil_image = pil_image.convert("RGB")
@@ -107,18 +107,42 @@ class ImageView(QGraphicsView):
         ).copy()  # Copy to, again, handle misbehaving memory
         
         pixmap = QPixmap.fromImage(qimage)
-        self._show_pixmap(window, pixmap)
+        self._show_pixmap(window, pixmap, preserve_view)
 
 
-    def _show_pixmap(self, window, pixmap: QPixmap) -> None:
+    def _show_pixmap(self, window, pixmap: QPixmap, preserve_view: bool = False) -> None:
         """Internal helper to clear the scene and show a pixmap"""
         if not hasattr(window, "scene") or window.scene is None:
             raise ValueError("[ImageView] No QGraphicsScene assigned to window")
 
+        # window.scene.clear()
+        # self._pixmap_item = QGraphicsPixmapItem(pixmap)
+        # self._pixmap_item.setAcceptedMouseButtons(QtCore.Qt.MouseButton.NoButton)  # To allow left-click panning
+        # window.scene.addItem(self._pixmap_item)
+
+        # self.resetTransform()
+        # self._zoom = 0
+
+        # Save current view state
+        if preserve_view:
+            transform = self.transform()
+            h_value = self.horizontalScrollBar().value()
+            v_value = self.verticalScrollBar().value()
+
         window.scene.clear()
+
         self._pixmap_item = QGraphicsPixmapItem(pixmap)
-        self._pixmap_item.setAcceptedMouseButtons(QtCore.Qt.MouseButton.NoButton)  # To allow left-click panning
+        self._pixmap_item.setAcceptedMouseButtons(
+            QtCore.Qt.MouseButton.NoButton
+        )
+
         window.scene.addItem(self._pixmap_item)
 
-        self.resetTransform()
-        self._zoom = 0
+        if preserve_view:
+            self.setTransform(transform)
+            self.horizontalScrollBar().setValue(h_value)
+            self.verticalScrollBar().setValue(v_value)
+
+        else:
+            self.resetTransform()
+            self._zoom = 0

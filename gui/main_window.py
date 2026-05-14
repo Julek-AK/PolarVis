@@ -73,6 +73,17 @@ class MainWindow(QMainWindow):
     # CALIBRATION
     # =============================================
 
+    def show_calibration_info(self) -> None:
+        stats = self.calibration_manager.get_stats()
+
+        text = (
+            f"Calibration storage location:\n{stats['path']}\n\n"
+            f"Number of calibration files: {stats['file_count']}\n"
+            f"Total size: {stats['total_size_bytes']/1000000:.2f} MB"
+        )
+
+        QMessageBox.information(self, "Calibration Information", text)
+
     def compute_calibration(self) -> None:
 
         # Activate the dialog window        

@@ -37,7 +37,7 @@ def pure_intensity(img_data, cmap='gist_gray'):
     """
     Creates a pure colormap of image intensity
     """
-    intensity = img_data[..., 0]
+    intensity = img_data[..., 0] / 2
     image = cmap_to_img(intensity, cmap)
     return image
 
@@ -66,7 +66,7 @@ def tinted_theta(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on polarization angle
     """
-    brightness = img_data[..., 0]  # Intensity
+    brightness = img_data[..., 0] / 2 # Intensity
 
     angle = np.mod(img_data[..., 2], np.pi)  # Theta
     saturation = angle / np.pi
@@ -83,7 +83,7 @@ def tinted_DoLP(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on degree of linear polarization
     """
-    brightness = img_data[..., 0]  # Intensity
+    brightness = img_data[..., 0] / 2 # Intensity
 
     saturation = img_data[..., 1]  # DOLP
 
@@ -99,7 +99,7 @@ def polarimetric_colormap(img_data):
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
-    brightness = img_data[..., 0]  # Intensity
+    brightness = img_data[..., 0] / 2 # Intensity
 
     saturation = img_data[..., 1]  # DOLP
 

@@ -15,6 +15,7 @@ from core.console_redirector import ConsoleRedirector
 from core.file_manager import ImageFileManager, CacheManager
 from core.calibration_manager import CalibrationManager
 from gui.visualisation_panel import VisualisationPanel
+from gui.calibration_panel import CalibrationPanel
 
 
 class MainWindowConstructor:
@@ -28,6 +29,7 @@ class MainWindowConstructor:
         self.init_managers()
         self.init_pipelines()
         self.init_visualisation()
+        self.init_calibration()
 
         self.init_menu_bar()
         self.init_console()
@@ -59,6 +61,7 @@ class MainWindowConstructor:
 
         # Calibration
         self.window.actionCompute_Calibration.triggered.connect(self.window.compute_calibration)
+        self.window.actionInfoCalibration.triggered.connect(self.window.show_calibration_info)
 
         # Cache
         self.window.actionInfoCache.triggered.connect(self.window.show_cache_info)
@@ -84,7 +87,8 @@ class MainWindowConstructor:
         vis_panel.connect_managers(self.window.cache_manager, self.window.file_manager)
         vis_panel.pixelHovered.connect(info_panel.update_values)
         
-
+    def init_calibration(self):
+        self.window.frame_calibration_panel.connect_manager(self.window.calibration_manager)
 
 
 

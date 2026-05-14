@@ -14,6 +14,12 @@ class PixelInfoPanel(QtWidgets.QFrame):
         super().__init__(parent)
         layout = QtWidgets.QGridLayout(self)
 
+        title = QtWidgets.QLabel("Pixel Information")
+        title_font = QtGui.QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(11)
+        title.setFont(title_font)
+
         self.intensity_label = QtWidgets.QLabel("Intensity:")
         self.dolp_label = QtWidgets.QLabel("Degree of Linear Polarization:")
         self.theta_label = QtWidgets.QLabel("Polarization Angle:")
@@ -24,19 +30,21 @@ class PixelInfoPanel(QtWidgets.QFrame):
         self.theta_scale = ColorScaleWidget("hsv", 0, 180)
         self.theta_display = AngleWidget()
 
+        layout.addWidget(title, 0, 0)
 
-        layout.addWidget(self.intensity_label, 0, 0)
-        layout.addWidget(self.intensity_scale, 1, 0)
+        layout.addWidget(self.intensity_label, 1, 0)
+        layout.addWidget(self.intensity_scale, 2, 0)
 
-        layout.addWidget(self.dolp_label, 2, 0)
-        layout.addWidget(self.dolp_scale, 3, 0)
+        layout.addWidget(self.dolp_label, 3, 0)
+        layout.addWidget(self.dolp_scale, 4, 0)
 
-        layout.addWidget(self.theta_label, 4, 0)
-        layout.addWidget(self.theta_scale, 5, 0)
-        layout.addWidget(self.theta_display, 6, 0)
+        layout.addWidget(self.theta_label, 5, 0)
+        layout.addWidget(self.theta_scale, 6, 0)
+        layout.addWidget(self.theta_display, 7, 0)
         layout.setContentsMargins(4, 4, 4, 4)
 
     def update_values(self, intensity: float, dolp: float, theta: float):
+        theta = np.mod(theta, np.pi)
         
         # Update labels
         self.intensity_label.setText(f"Intensity: {255*intensity}")
@@ -44,7 +52,7 @@ class PixelInfoPanel(QtWidgets.QFrame):
         self.theta_label.setText(f"Polarization Angle: {degrees(theta):.1f} deg")
 
         # Update visuals
-        self.intensity_scale.set_value(255*intensity)
+        self.intensity_scale.set_value(intensity * 255)
         self.dolp_scale.set_value(dolp)
         self.theta_scale.set_value(degrees(theta))
         self.theta_display.set_angle(theta)
@@ -52,18 +60,22 @@ class PixelInfoPanel(QtWidgets.QFrame):
 
 class ColorScaleWidget(QtWidgets.QWidget):
     """Dynamic color scale for representing image parameters"""
-    def __init__(self, cmap_name, vmin=0.0, vmax=1.0, parent=None):
+    def __init__(self, cmap_name, vmin=0.0, vmax=1.0, parent=None, is_intensity=False):
         super().__init__(parent)
         self.cmap_name = cmap_name
         self.vmin = vmin
         self.vmax = vmax
         self.value = None
 
-        self._gradient_pixmap = None  # cache
+        # self.is_intensity = is_intensity  # TODO something isn't working with the intensity scale mismatch handling
 
+        self._gradient_pixmap = None  # cache
         self.setMinimumHeight(30)
 
     def set_value(self, value):
+        # if self.is_intensity:  # correct for intensity scale mismatch
+        #     value /= 2
+
         if self.value == value:
             return
         self.value = value
@@ -152,7 +164,8 @@ class AngleWidget(QtWidgets.QWidget):
         cy = h // 2
         r = min(cx, cy) - 5
 
-        painter.setPen(QtGui.QPen(QtGui.QColor("white"), 2))
+        fg = self.palette().color(QtGui.QPalette.ColorRole.WindowText)
+        painter.setPen(QtGui.QPen(fg, 2))
         painter.drawEllipse(cx - r, cy - r, 2*r, 2*r)
 
         # axes

@@ -21,28 +21,57 @@ class VisualisationPanel(QtWidgets.QFrame):
         self.current_image = None
         self.current_file = None
         self.current_array = None
+        self.current_visualisation = None
 
         # UI setup
         layout = QtWidgets.QVBoxLayout(self)
 
-        self.file_selector = QtWidgets.QComboBox()
-        self.vis_selector = QtWidgets.QComboBox()
-        self.preview_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        title = QtWidgets.QLabel("Visualisation")
+        title_font = QtGui.QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(11)
+        title.setFont(title_font)
+
+        self.file_selector = QtWidgets.QListWidget()
+        self.file_selector.setSelectionMode(
+            QtWidgets.QAbstractItemView.SelectionMode.SingleSelection
+        )
+        self.file_selector.setVerticalScrollMode(
+            QtWidgets.QAbstractItemView.ScrollMode.ScrollPerPixel
+        )
+
+        vis_grid = QtWidgets.QGridLayout()
+        self.vis_buttons = QtWidgets.QButtonGroup(self)
+        self.vis_buttons.setExclusive(True)
+        visualisations = list_visualisations()
+        for idx, name in enumerate(visualisations):
+            button = QtWidgets.QPushButton(name)
+            button.setCheckable(True)
+
+            if idx == 0:
+                button.setChecked(True)
+                self.current_visualisation = name
+
+            self.vis_buttons.addButton(button)
+
+            row = idx // 2
+            col = idx % 2
+            vis_grid.addWidget(button, row, col)
+
+        # self.preview_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.save_button = QtWidgets.QPushButton("Save Visualisation")
 
+        layout.addWidget(title)
         layout.addWidget(QtWidgets.QLabel("Select Cached File:"))
-        layout.addWidget(self.file_selector)
+        layout.addWidget(self.file_selector, stretch=1)
         layout.addWidget(QtWidgets.QLabel("Visualisation Type:"))
-        layout.addWidget(self.vis_selector)
-        layout.addWidget(self.preview_label, stretch=1)
+        layout.addLayout(vis_grid)
+        # layout.addWidget(self.preview_label, stretch=1)
         layout.addWidget(self.save_button)
 
-        # Populate selectors
-        self.vis_selector.addItems(list_visualisations())
-
         # Connect logic
-        self.vis_selector.currentIndexChanged.connect(self.update_preview)
-        self.file_selector.currentIndexChanged.connect(self.update_preview)
+        self.vis_buttons.buttonClicked.connect(self.on_visualisation_selected)
+        self.file_selector.itemSelectionChanged.connect(self.update_preview)
         self.save_button.clicked.connect(self.save_current_visualisation)
         self.image_view.pixelHovered.connect(self.on_pixel_hovered)
 
@@ -60,20 +89,35 @@ class VisualisationPanel(QtWidgets.QFrame):
         """Reloads the combo box based on current cache contents."""
         cached_files = self.cache_manager.list_contents()
         self.file_selector.clear()
-        self.file_selector.addItems([None] + [str(f.stem) for f in cached_files])
+
+        for file in cached_files:
+            item = QtWidgets.QListWidgetItem(str(file.stem))
+            self.file_selector.addItem(item)
+
+    def on_visualisation_selected(self, button):
+        self.current_visualisation = button.text()
+        self.update_preview()
 
     def update_preview(self):
-        file_name = self.file_selector.currentText()
-        vis_name = self.vis_selector.currentText()
-        if not file_name:
-            return
+        item = self.file_selector.currentItem()
+        if item is None: return
 
-        self.current_array = self.cache_manager.get_array(file_name)
-        self.current_file = file_name
+        file_name = item.text()
+        vis_name = self.current_visualisation
+
+        new_file = (file_name != self.current_file)
+        if new_file:
+            self.current_array = self.cache_manager.get_array(file_name)
+            self.current_file = file_name
 
         image = generate_visualisation(vis_name, self.current_array)
         self.current_image = image
-        self.image_view.display_pil_image(self.main_window, self.current_image)
+
+        self.image_view.display_pil_image(
+            self.main_window,
+            self.current_image,
+            preserve_view=not new_file
+        )
 
     def on_pixel_hovered(self, x: int, y: int):
         if self.current_file is None:
@@ -82,7 +126,7 @@ class VisualisationPanel(QtWidgets.QFrame):
         if not (0 <= x < img_data.shape[1] and 0 <= y < img_data.shape[0]):
             return
 
-        i = img_data[y, x, 0]
+        i = img_data[y, x, 0] / 2  # Times-two offset correction
         d = img_data[y, x, 1]
         t = img_data[y, x, 2]
         self.pixelHovered.emit(float(i), float(d), float(t))
@@ -95,6 +139,6 @@ class VisualisationPanel(QtWidgets.QFrame):
             QtWidgets.QMessageBox.warning(self, "No image", "No visualisation generated yet.")
             return
 
-        default_name = f"{self.current_file}_{self.vis_selector.currentText().replace(' ', '_')}"
+        default_name = f"{self.current_file}_{self.current_visualisation.replace(' ', '_')}"
         save_path = self.file_manager.select_save_location(self, default_name)
         self.file_manager.save_visualisation(save_path, self.current_image)
