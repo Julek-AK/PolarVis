@@ -8,9 +8,11 @@ all of these take in arrays of processed image data (i.e. one where each pixel h
 # Builtins
 from PIL import Image
 import colorsys
+from dataclasses import dataclass
 
 # External Libraries
 import numpy as np
+from numpy.typing import NDArray
 import torch
 from matplotlib import pyplot as plt
 
@@ -21,7 +23,14 @@ from core.utils import *
 hsv_to_rgb_vec = np.vectorize(colorsys.hsv_to_rgb)
 
 
-def cmap_to_img(img_arr, cmap):
+@dataclass
+class VisualisationResult:
+    image: Image.Image
+    cmap: str | None = None
+    label: str | None = None
+
+
+def cmap_to_img(img_arr: NDArray, cmap: str) -> Image.Image:
     """
     creates a colormap image from a 0-1 scaled array
     """
@@ -33,39 +42,55 @@ def cmap_to_img(img_arr, cmap):
     return img
 
 
-def pure_intensity(img_data, cmap='gist_gray'):
+def pure_intensity(img_data: NDArray, cmap: str ='gist_gray') -> VisualisationResult:
     """
     Creates a pure colormap of image intensity
     """
     intensity = img_data[..., 0] / 2
     image = cmap_to_img(intensity, cmap)
-    return image
+
+    return VisualisationResult(
+        image=image,
+        cmap=cmap,
+        label="Intensity",
+    )
 
 
-def pure_DoLP(img_data, cmap='viridis'):
+def pure_DoLP(img_data: NDArray, cmap: str = 'viridis') -> VisualisationResult:
     """
     Creates a pure colormap of image degree of linear polarization
     """
     dolp = img_data[..., 1]
     image = cmap_to_img(dolp, cmap)
-    return image
+
+    return VisualisationResult(
+        image=image,
+        cmap=cmap,
+        label="DoLP"
+    )
 
 
-def pure_theta(img_data, cmap='hsv'):
+def pure_theta(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     """
     Creates a pure colormap of image polarization angle, from 0 to pi
     """
     angle = np.mod(img_data[..., 2], np.pi)
     angle_norm = angle / np.pi  # Normalize to [0, 1]
-
     image = cmap_to_img(angle_norm, cmap)
-    return image
+
+    return VisualisationResult(
+        image=image,
+        cmap=cmap,
+        label="AoP"
+    )
 
 
 def tinted_theta(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on polarization angle
     """
+    raise DeprecationWarning("[Visualisation] tinted colormaps are deprecated.")
+
     brightness = img_data[..., 0] / 2 # Intensity
 
     angle = np.mod(img_data[..., 2], np.pi)  # Theta
@@ -83,6 +108,8 @@ def tinted_DoLP(img_data, hue=0):
     """
     Creates a pure intensity image, adds color depending on degree of linear polarization
     """
+    raise DeprecationWarning("[Visualisation] tinted colormaps are deprecated.")
+
     brightness = img_data[..., 0] / 2 # Intensity
 
     saturation = img_data[..., 1]  # DOLP
@@ -95,10 +122,13 @@ def tinted_DoLP(img_data, hue=0):
     return image
 
 
-def polarimetric_colormap(img_data):
+def polarimetric_colormap(img_data: NDArray, angle_cmap: str = 'hsv') -> VisualisationResult:
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
+    if angle_cmap != 'hsv':
+        raise NotImplementedError("[Visualisation] Polarimetric visualisation techniques other than standard HSV are not implemented yet.")
+
     brightness = img_data[..., 0] / 2 # Intensity
 
     saturation = img_data[..., 1]  # DOLP
@@ -111,13 +141,20 @@ def polarimetric_colormap(img_data):
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
     image = Image.fromarray(rgb_uint8)
 
-    return image
+    return VisualisationResult(
+        image=image,
+        cmap=angle_cmap,
+        label="AoP DoLP Intensity"
+    )
 
 
-def polar_data(img_data):
+def polar_data(img_data: NDArray, angle_cmap: str = 'hsv') -> VisualisationResult:
     """
     Displays exclusively polarization data, neglecting original image brightness
     """
+    if angle_cmap != 'hsv':
+        raise NotImplementedError("[Visualisation] Polarimetric visualisation techniques other than standard HSV are not implemented yet.")
+   
     brightness = np.ones_like(img_data[..., 0])  # Brightness override
 
     saturation = img_data[..., 1]  # DOLP
@@ -130,4 +167,9 @@ def polar_data(img_data):
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
     image = Image.fromarray(rgb_uint8)
 
-    return image
+    return VisualisationResult(
+        image=image,
+        cmap=angle_cmap,
+        label="AoP DoLP"
+    )
+

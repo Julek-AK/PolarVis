@@ -6,8 +6,11 @@ from PyQt6 import QtWidgets, QtGui, QtCore
 import numpy as np
 
 # Internal Support
-from core.visualisation_control import list_visualisations, generate_visualisation
-
+from core.visualisation_control import (
+    list_visualisations,
+    generate_visualisation,
+    generate_legend
+)
 
 
 class VisualisationPanel(QtWidgets.QFrame):
@@ -18,7 +21,7 @@ class VisualisationPanel(QtWidgets.QFrame):
         self.main_window = self.window()
         self.image_view = self.main_window.graphicsView
 
-        self.current_image = None
+        self.current_result = None
         self.current_file = None
         self.current_array = None
         self.current_visualisation = None
@@ -59,14 +62,18 @@ class VisualisationPanel(QtWidgets.QFrame):
             vis_grid.addWidget(button, row, col)
 
         # self.preview_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.legend_checkbox = QtWidgets.QCheckBox("Include Legend")
+        self.legend_checkbox.setChecked(True)
         self.save_button = QtWidgets.QPushButton("Save Visualisation")
 
         layout.addWidget(title)
-        layout.addWidget(QtWidgets.QLabel("Select Cached File:"))
+        layout.addWidget(QtWidgets.QLabel("Cached File Selection:"))
         layout.addWidget(self.file_selector, stretch=1)
         layout.addWidget(QtWidgets.QLabel("Visualisation Type:"))
         layout.addLayout(vis_grid)
         # layout.addWidget(self.preview_label, stretch=1)
+        layout.addWidget(QtWidgets.QLabel("Saving:"))
+        layout.addWidget(self.legend_checkbox)
         layout.addWidget(self.save_button)
 
         # Connect logic
@@ -110,12 +117,12 @@ class VisualisationPanel(QtWidgets.QFrame):
             self.current_array = self.cache_manager.get_array(file_name)
             self.current_file = file_name
 
-        image = generate_visualisation(vis_name, self.current_array)
-        self.current_image = image
+        result = generate_visualisation(vis_name, self.current_array)
+        self.current_result = result
 
         self.image_view.display_pil_image(
             self.main_window,
-            self.current_image,
+            self.current_result.image,
             preserve_view=not new_file
         )
 
@@ -135,10 +142,23 @@ class VisualisationPanel(QtWidgets.QFrame):
     # SAVING
     # =============================================
     def save_current_visualisation(self):
-        if self.current_image is None:
+        if self.current_result is None:
             QtWidgets.QMessageBox.warning(self, "No image", "No visualisation generated yet.")
             return
+        
+        export_image = self.current_result.image.copy()
+
+        if self.legend_checkbox.isChecked():
+
+            export_image = generate_legend(
+                name=self.current_visualisation,
+                image=export_image,
+                result=self.current_result
+            )
 
         default_name = f"{self.current_file}_{self.current_visualisation.replace(' ', '_')}"
         save_path = self.file_manager.select_save_location(self, default_name)
-        self.file_manager.save_visualisation(save_path, self.current_image)
+
+        if save_path:
+            self.file_manager.save_visualisation(save_path, export_image)
+

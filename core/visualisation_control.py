@@ -1,33 +1,96 @@
 
 # Builtins
-from pathlib import Path
-from PIL import Image
+from dataclasses import dataclass
+from typing import Callable, Optional
 
 # External Libraries
 from numpy.typing import NDArray
 
 # Internal Support
-from processing import visualisation as vis
+from processing import image_visualisation as vis
+from processing import image_legend as legend
 
 
-VISUALISATION_FUNCS = {
-    "Pure Intensity": vis.pure_intensity,
-    "Pure DoLP": vis.pure_DoLP,
-    "Pure AoP": vis.pure_theta,
-    # "Tinted Theta": vis.tinted_theta,  # Currently deprecated since this visualisation is awful to look at
-    # "Tinted DoLP": vis.tinted_DoLP,  # Currently deprecated since this visualisation is awful to look at
-    "Full Polarimetric Colormap": vis.polarimetric_colormap,
-    "Polar Only": vis.polar_data 
+@dataclass
+class VisualisationDefinition:
+    name: str
+    generator: Callable[..., vis.VisualisationResult]
+    legend_renderer: Optional[Callable] = None
+
+
+VISUALISATIONS: dict[str, VisualisationDefinition] = {
+    'Pure Intensity': VisualisationDefinition(
+        name="Pure Intensity",
+        generator=vis.pure_intensity,
+        legend_renderer=legend.scalar_legend
+    ),
+
+    'Pure DoLP': VisualisationDefinition(
+        name="Pure DoLP",
+        generator=vis.pure_DoLP,
+        legend_renderer=legend.scalar_legend
+    ),
+
+    'Pure AoP': VisualisationDefinition(
+        name="Pure AoP",
+        generator=vis.pure_theta,
+        legend_renderer=legend.angle_legend
+    ),
+
+    'Full Polarimetric Colormap': VisualisationDefinition(
+        name="Full Polarimetric Colormap",
+        generator=vis.polarimetric_colormap,
+        legend_renderer=legend.polarimetric_legend
+    ),
+
+    'Polar Only': VisualisationDefinition(
+        name="Polar Only",
+        generator=vis.polar_data,
+        legend_renderer=legend.polar_only_legend
+    ),
 }
 
 
-def list_visualisations() -> list:
-    return list(VISUALISATION_FUNCS.keys())
+def list_visualisations() -> list[str]:
+    """Returns all available visualisation names."""
+    return list(VISUALISATIONS.keys())
 
 
-def generate_visualisation(name: str, img_data: NDArray, **kwargs) -> Image.Image:
-    func = VISUALISATION_FUNCS.get(name)
-    if func is None:
+def get_visualisation(name: str) -> VisualisationDefinition:
+    """Returns the visualisation definition corresponding
+    to the requested UI/display name."""
+    vis_def = VISUALISATIONS.get(name)
+
+    if vis_def is None:
         raise ValueError(f"[Visualisation] Unknown visualisation type: {name}")
-    return func(img_data, **kwargs)
 
+    return vis_def
+
+
+def generate_visualisation(
+    name: str,
+    img_data: NDArray,
+    **kwargs
+) -> vis.VisualisationResult:
+    
+    vis_def = get_visualisation(name)
+    return vis_def.generator(img_data, **kwargs)
+
+
+def generate_legend(
+    name: str,
+    image,
+    result: vis.VisualisationResult,
+    **kwargs
+):
+    
+    vis_def = get_visualisation(name)
+
+    if vis_def.legend_renderer is None:
+        return image
+
+    return vis_def.legend_renderer(
+        image=image.copy(),
+        result=result,
+        **kwargs
+    )
