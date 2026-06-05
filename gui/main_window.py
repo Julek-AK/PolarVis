@@ -14,6 +14,8 @@ from gui.pipeline_dialog import PipelineDialog
 from gui.calibration_dialog import CalibrationDialog
 from gui.window_init import MainWindowConstructor
 
+from core.pipeline import VideoPipeline
+
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
@@ -111,9 +113,10 @@ class MainWindow(QMainWindow):
             return
         
         # Calibration
-        cal_id = dialog.get_calibration_id()
-        # cal = self.calibration_manager.load_calibration(cal_id)
-        cal, _ = self.calibration_manager.load_calibration("Default_factory_NA")
+        # cal_id = dialog.get_calibration_id()
+        # cal, _ = self.calibration_manager.load_calibration(cal_id)
+        # cal, _ = self.calibration_manager.load_calibration("Default_factory_NA")  # TODO remove completely and instead display the selected calibration file
+        cal, cal_id = self.calibration_manager.require_current_calibration()
 
         # Check the cache
         ID = f"{img_id}__{cal_id}" 
@@ -124,7 +127,6 @@ class MainWindow(QMainWindow):
 
         # Callbacks
         def on_finished(sol_array):
-             
             self.cache_manager.save_array(ID, sol_array)
             dialog.close()
             QMessageBox.information(self, "Success", f"Saved results for ID '{ID}'")
@@ -154,7 +156,14 @@ class MainWindow(QMainWindow):
         raise NotImplementedError
 
     def run_video_process(self) -> None:
-        raise NotImplementedError
+        cal, cal_id = self.calibration_manager.require_current_calibration()
+
+        INPUT_PATH = r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\Media\Lens Testing Again\bent_ruler.avi"
+        OUTPUT_PATH = r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\Media\bent_ruler.mp4"
+
+        pipeline = VideoPipeline(cal)
+        pipeline.process(INPUT_PATH, OUTPUT_PATH)
+        
 
     # =============================================
     # IMAGE VISUALISATION

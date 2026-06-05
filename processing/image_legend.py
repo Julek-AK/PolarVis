@@ -193,7 +193,7 @@ def angle_legend(image, result, position="bottom_right"):
         draw,
         INNER_PADDING,
         INNER_PADDING,
-        result.label,
+        "AoP",
         FONT,
         align="left"
     )
@@ -417,7 +417,7 @@ if __name__ == "__main__":
 
     for name, func in legends.items():
         img = Image.new("RGB", (300, 300), (0, 0, 0))
-        result = VisualisationResult(img, 'viridis', "DoLP")
+        result = VisualisationResult(img, 'gist_gray', "Intensity")
 
         out = func(img, result)
 

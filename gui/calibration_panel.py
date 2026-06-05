@@ -48,6 +48,8 @@ class CalibrationPanel(QtWidgets.QFrame):
         self._build_ui()
         self._connect_signals()
 
+
+
     def connect_manager(self, calibration_manager):
         """Provide the managers after UI load."""
         self.calibration_manager = calibration_manager
@@ -184,17 +186,9 @@ class CalibrationPanel(QtWidgets.QFrame):
 
     def _on_calibration_selected(self, calibration_id: str):
 
-        if not calibration_id:
-            return
-
-        self.current_calibration_id = calibration_id
-
         try:
-            metadata = (
-                self.calibration_manager
-                .load_calibration_metadata(calibration_id)
-            )
-
+            self.calibration_manager.set_current_calibration(calibration_id)
+            
         except Exception as exc:
             self.current_metadata = None
 
@@ -206,15 +200,11 @@ class CalibrationPanel(QtWidgets.QFrame):
 
             return
 
-        self.current_metadata = metadata
-
+        self.current_calibration_id = calibration_id
+        metadata = self.calibration_manager.current_metadata
         self._populate_metadata(metadata)
 
-        self.status_label.setText(
-            f"Loaded calibration: {calibration_id}"
-        )
-
-        self.calibration_changed.emit(calibration_id)
+        self.status_label.setText(f"Loaded calibration: {calibration_id}")
 
     def _populate_metadata(self, metadata: Dict[str, Any]):
 

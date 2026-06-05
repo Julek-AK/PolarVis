@@ -16,7 +16,7 @@ from matplotlib import pyplot as plt
 from tests.processing_tests.test_case_generator import TestCase, TestCaseGenerator
 from tests.processing_tests.test_runner import TestResult, TestRunner, TestBatchRunner
 from paths import TEST_OUT_DIR
-from processing.visualisation import polarimetric_colormap
+from processing.image_visualisation import polarimetric_colormap
 
 
 

@@ -27,11 +27,16 @@ from PyQt6 import QtCore
 
 FILE_FORMAT_VERSION = 1
 
+# TODO THE CALIBRATION SELECTED IN THE PANEL ISN'T ACTUALLY CONNECTED TO ANYTHING
 
-class CalibrationManager:
+class CalibrationManager(QtCore.QObject):
     """Orchestrates and manages loading, saving and computing calibration."""
+    current_calibration_changed = QtCore.pyqtSignal(str)
+
+
     def __init__(self) -> None:
         """Initialize relevant fields, connect to the gui"""
+        super().__init__()
 
         self.cal_dir = CALIBRATION_DIR
         self.cal_dir.mkdir(parents=True, exist_ok=True)
@@ -51,6 +56,33 @@ class CalibrationManager:
             )
 
         self._metadata_cache: Dict[str, Dict] = {}
+
+        self.current_calibration_id: Optional[str] = None
+        self.current_calibration: Optional[Calibration] = None
+        self.current_metadata: Optional[Dict] = None
+
+        available = self.list_calibrations()
+        if available: self.set_current_calibration(available[0])
+
+    def set_current_calibration(self, cal_id: str):
+        """Load and activate a calibration."""
+
+        calibration, metadata = self.load_calibration(cal_id)
+
+        self.current_calibration_id = cal_id
+        self.current_calibration = calibration
+        self.current_metadata = metadata
+
+        self.current_calibration_changed.emit(cal_id)
+
+    def require_current_calibration(self) -> Tuple[Calibration, str]:
+
+        if self.current_calibration is None:
+            raise RuntimeError(
+                "[CalibrationManager] No calibration selected."
+            )
+
+        return self.current_calibration, self.current_calibration_id
 
     def refresh_metadata_cache(self):
 
@@ -202,7 +234,7 @@ class CalibrationManager:
 
         timestamp = metadata['timestamp']
 
-        return stem + "_" + timestamp
+        return stem
 
     def get_compatible(self, img_shape: Tuple[int, int]) -> List[str]:
         """Identify calibration files compatible with given image size."""

@@ -48,7 +48,7 @@ class PipelineWorker(QThread):
     #         self.error.emit(str(e))
 
 
-class Pipeline():
+class ImagePipeline():
     """Maintains system architecture for image processing"""
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -73,3 +73,51 @@ class Pipeline():
         self.worker.finished.connect(on_finished)
         self.worker.error.connect(on_error)
         self.worker.start()
+
+
+# TODO make this actually work not in a scuffed manner
+class VideoPipeline():
+    def __init__(self, cal) -> None:
+        self.cal = cal
+
+    def process(self, input_path, output_path):
+        import cv2
+        from processing.torch_backend import calibrated_resolve_polarization
+        from processing.video_processing import arr_to_polarimetric, cleanup_frame
+
+        cap = cv2.VideoCapture(input_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+        # read first frame to determine output size
+        success, frame = cap.read()
+        if not success:
+            raise RuntimeError("Could not read video")
+
+        raw = cleanup_frame(frame)
+        polarization = calibrated_resolve_polarization(raw, self.cal)
+        vis = arr_to_polarimetric(polarization)
+
+        h, w = vis.shape[:2]
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+
+        writer.write(vis)
+
+        i = 0
+        while True:
+            success, frame = cap.read()
+            if not success:
+                break
+
+            raw = cleanup_frame(frame)
+            polarization = calibrated_resolve_polarization(raw, self.cal)
+            vis = arr_to_polarimetric(polarization)
+
+            writer.write(vis)
+            print(f"Processed frame {i} out of {count}")
+            i += 1
+
+        cap.release()
+        writer.release()

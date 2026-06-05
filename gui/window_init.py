@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout
 
 # Internal Support
 from streams import TeeStream
-from core.pipeline import Pipeline
+from core.pipeline import ImagePipeline
 from core.console_redirector import ConsoleRedirector
 from core.file_manager import ImageFileManager, CacheManager
 from core.calibration_manager import CalibrationManager
@@ -78,7 +78,7 @@ class MainWindowConstructor:
         self.window.calibration_manager = CalibrationManager()
 
     def init_pipelines(self):
-        self.window.pipeline = Pipeline()
+        self.window.pipeline = ImagePipeline()
 
     def init_visualisation(self):
         vis_panel = self.window.frame_view_filters
