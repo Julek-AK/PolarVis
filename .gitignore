@@ -120,3 +120,5 @@ config_local.yaml
 *.local.json
 *.local.yaml
 
+# Local scripts
+local/

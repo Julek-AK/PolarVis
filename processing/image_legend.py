@@ -1,5 +1,6 @@
 # Builtins
 from math import pi
+from dataclasses import dataclass
 
 # External Libraries
 import numpy as np
@@ -13,20 +14,53 @@ from colorsys import hsv_to_rgb
 # CONFIG
 # =============================================
 
-BOX_PADDING = 12
-INNER_PADDING = 8
-HEADER_HEIGHT = 22
-
 BACKGROUND = (0, 0, 0, 180)
 TEXT_COLOR = (255, 255, 255, 255)
 BORDER_COLOR = (255, 255, 255, 180)
 
-FONT = ImageFont.load_default()
+
+@dataclass
+class LegendStyle:
+    scale: float
+    box_padding: int
+    inner_padding: int
+    header_height: int
+    font: ImageFont.FreeTypeFont
+
+
+LEGEND_STYLES = {
+    'small': LegendStyle(
+        scale=1.0,
+        box_padding=12,
+        inner_padding=8,
+        header_height=22,
+        font=ImageFont.truetype("arial.ttf", 12),
+    ),
+
+    'large': LegendStyle(
+        scale=1.75,
+        box_padding=21,
+        inner_padding=14,
+        header_height=38,
+        font=ImageFont.truetype("arial.ttf", 21),
+    ),
+}
 
 
 # =============================================
 # HELPERS
 # =============================================
+
+def get_legend_style(size: str = 'small') -> LegendStyle:
+    try:
+        return LEGEND_STYLES[size]
+    except KeyError:
+        raise ValueError(f"[Rendering] Unknown legend size: {size}")
+
+
+def px(value, scale):
+    return int(round(value * scale))
+
 
 def _create_overlay_box(width: int, height: int) -> Image.Image:
     return Image.new(
@@ -39,6 +73,7 @@ def _create_overlay_box(width: int, height: int) -> Image.Image:
 def _paste_box(
     base: Image.Image,
     overlay: Image.Image,
+    style: LegendStyle,
     position: str = "bottom_right"
 ) -> Image.Image:
 
@@ -48,20 +83,20 @@ def _paste_box(
     ow, oh = overlay.size
 
     if position == "bottom_right":
-        x = bw - ow - BOX_PADDING
-        y = bh - oh - BOX_PADDING
+        x = bw - ow - style.box_padding
+        y = bh - oh - style.box_padding
 
     elif position == "bottom_left":
-        x = BOX_PADDING
-        y = bh - oh - BOX_PADDING
+        x = style.box_padding
+        y = bh - oh - style.box_padding
 
     elif position == "top_right":
-        x = bw - ow - BOX_PADDING
-        y = BOX_PADDING
+        x = bw - ow - style.box_padding
+        y = style.box_padding
 
     elif position == "top_left":
-        x = BOX_PADDING
-        y = BOX_PADDING
+        x = style.box_padding
+        y = style.box_padding
 
     else:
         raise ValueError(f"[Visualisation] Unknown legend position: {position}")
@@ -118,15 +153,19 @@ def label(draw, x, y, text, font, align="left", padding=3):
 # SCALAR LEGEND
 # =============================================
 
-def scalar_legend(image, result, position="bottom_right"):
+def scalar_legend(image, result, position="bottom_right", size="large"):
     cmap = plt.get_cmap(result.cmap)
 
-    bar_w = 28
-    bar_h = 220
-    label_w = 30
+    style = get_legend_style(size)
+    scale = style.scale
+    font = style.font
 
-    box_w = bar_w + label_w + INNER_PADDING * 3
-    box_h = bar_h + INNER_PADDING * 2 + HEADER_HEIGHT
+    bar_w = px(28, scale)
+    bar_h = px(220, scale)
+    label_w = px(30, scale)
+
+    box_w = bar_w + label_w + style.inner_padding * 3
+    box_h = bar_h + style.inner_padding * 2 + style.header_height
 
     overlay = _create_overlay_box(box_w, box_h)
     draw = ImageDraw.Draw(overlay)
@@ -134,25 +173,25 @@ def scalar_legend(image, result, position="bottom_right"):
     # Header
     label(
         draw,
-        INNER_PADDING,
-        INNER_PADDING,
+        style.inner_padding,
+        style.inner_padding,
         result.label,
-        FONT,
+        font,
         align="left"
     )
 
-    y0 = INNER_PADDING + HEADER_HEIGHT
+    y0 = style.inner_padding + style.header_height
 
     # Gradient
     grad = _draw_vertical_gradient(bar_h, bar_w, cmap)
-    overlay.paste(grad, (INNER_PADDING, y0))
+    overlay.paste(grad, (style.inner_padding, y0))
 
     # Border
     draw.rectangle(
         [
-            INNER_PADDING,
+            style.inner_padding,
             y0,
-            INNER_PADDING + bar_w,
+            style.inner_padding + bar_w,
             y0 + bar_h
         ],
         outline=BORDER_COLOR,
@@ -160,24 +199,28 @@ def scalar_legend(image, result, position="bottom_right"):
     )
 
     # Labels
-    bx = INNER_PADDING + bar_w + 8
+    bx = style.inner_padding + bar_w + 8
     by = y0 - 2
 
-    label(draw, bx, by             , "1.00", FONT, align="center")
-    label(draw, bx, by + bar_h*0.25, "0.75", FONT, align="center")
-    label(draw, bx, by + bar_h*0.5 , "0.50", FONT, align="center")
-    label(draw, bx, by + bar_h*0.75, "0.25", FONT, align="center")
-    label(draw, bx, by + bar_h     , "0.00", FONT, align="center")
+    label(draw, bx, by             , "1.00", font, align="center")
+    label(draw, bx, by + bar_h*0.25, "0.75", font, align="center")
+    label(draw, bx, by + bar_h*0.5 , "0.50", font, align="center")
+    label(draw, bx, by + bar_h*0.75, "0.25", font, align="center")
+    label(draw, bx, by + bar_h     , "0.00", font, align="center")
 
-    return _paste_box(image, overlay, position)
+    return _paste_box(image, overlay, style, position)
 
 
 # =============================================
 # ANGLE LEGEND (AoP)
 # =============================================
 
-def angle_legend(image, result, position="bottom_right"):
-    size = 180
+def angle_legend(image, result, position="bottom_right", size="large"):
+    style = get_legend_style(size)
+    scale = style.scale
+    font = style.font
+
+    size = px(180, scale)
 
     overlay = _create_overlay_box(size, size)
     draw = ImageDraw.Draw(overlay)
@@ -185,16 +228,16 @@ def angle_legend(image, result, position="bottom_right"):
     cx = size // 2
     cy = size // 2
 
-    r_outer = 65
-    r_inner = 40
+    r_outer = px(65, scale)
+    r_inner = px(40, scale)
 
     # Header
     label(
         draw,
-        INNER_PADDING,
-        INNER_PADDING,
+        style.inner_padding,
+        style.inner_padding,
         "AoP",
-        FONT,
+        font,
         align="left"
     )
 
@@ -219,22 +262,26 @@ def angle_legend(image, result, position="bottom_right"):
         theta = np.deg2rad(deg)
 
         # place slightly outside the circle
-        r_text = r_outer + 14
+        r_text = r_outer + px(14, scale)
 
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, FONT, align="center")
+        label(draw, x, y, text, font, align="center")
 
-    return _paste_box(image, overlay, position)
+    return _paste_box(image, overlay, style, position)
 
 
 # =============================================
 # POLARIMETRIC LEGEND (AoP + DoLP + Intensity)
 # =============================================
 
-def polarimetric_legend(image, result, position="bottom_right"):
-    size = 240
+def polarimetric_legend(image, result, position="bottom_right", size="large"):
+    style = get_legend_style(size)
+    scale = style.scale
+    font = style.font
+
+    size = px(240, scale)
 
     overlay = _create_overlay_box(size, size)
     draw = ImageDraw.Draw(overlay)
@@ -242,15 +289,15 @@ def polarimetric_legend(image, result, position="bottom_right"):
     cx = size // 2
     cy = size // 2
 
-    radius = 85
+    radius = px(85, scale)
 
     # Header
     label(
         draw,
-        INNER_PADDING,
-        INNER_PADDING,
+        style.inner_padding,
+        style.inner_padding,
         "AoP DoLP Intensity",
-        FONT,
+        font,
         align="left"
     )
 
@@ -292,7 +339,7 @@ def polarimetric_legend(image, result, position="bottom_right"):
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, FONT, align="center")
+        label(draw, x, y, text, font, align="center")
 
     # DoLP labels
     dolp_labels = [0.25, 0.50, 0.75, 1.00]
@@ -302,34 +349,38 @@ def polarimetric_legend(image, result, position="bottom_right"):
         x = cx
         y = cy + r
 
-        label(draw, x, y, f"{v:.2f}", FONT, align="center")
+        label(draw, x, y, f"{v:.2f}", font, align="center")
 
     # Intensity bar
-    bar_w = 14
-    bar_h = 120
+    bar_w = px(14, scale)
+    bar_h = px(120, scale)
 
     grad = np.linspace(1, 0, bar_h)[:, None]
     grad = np.repeat(grad, bar_w, axis=1)
     intensity_bar = Image.fromarray((grad * 255).astype(np.uint8)).convert("RGBA")
 
-    bx = cx + radius + 12
+    bx = cx + radius + px(12, scale)
     by = cy - bar_h // 2
 
     overlay.paste(intensity_bar, (bx, by))
 
-    label(draw, bx, by + bar_h, "0.0", FONT, align="center")
-    label(draw, bx, by + bar_h/2, "0.5", FONT, align="center")
-    label(draw, bx, by, "1.0", FONT, align="center")
+    label(draw, bx, by + bar_h, "0.0", font, align="center")
+    label(draw, bx, by + bar_h/2, "0.5", font, align="center")
+    label(draw, bx, by, "1.0", font, align="center")
 
-    return _paste_box(image, overlay, position)
+    return _paste_box(image, overlay, style, position)
 
 
 # =============================================
 # POLAR-ONLY LEGEND (AoP + DoLP only)
 # =============================================
 
-def polar_only_legend(image, result, position="bottom_right"):
-    size = 200
+def polar_only_legend(image, result, position="bottom_right", size="large"):
+    style = get_legend_style(size)
+    scale = style.scale
+    font = style.font
+
+    size = px(200, scale)
 
     overlay = _create_overlay_box(size, size)
     draw = ImageDraw.Draw(overlay)
@@ -337,15 +388,15 @@ def polar_only_legend(image, result, position="bottom_right"):
     cx = size // 2
     cy = size // 2
 
-    radius = 80
+    radius = px(80, scale)
 
     # Header
     label(
         draw,
-        INNER_PADDING,
-        INNER_PADDING,
+        style.inner_padding,
+        style.inner_padding,
         "AoP DoLP",
-        FONT,
+        font,
         align="left"
     )
 
@@ -381,12 +432,12 @@ def polar_only_legend(image, result, position="bottom_right"):
         theta = np.deg2rad(deg)
 
         # place slightly outside the circle
-        r_text = radius + 14
+        r_text = radius + px(14, scale)
 
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, FONT, align="center")
+        label(draw, x, y, text, font, align="center")
 
     # DoLP labels
     dolp_labels = [0.25, 0.50, 0.75, 1.00]
@@ -396,9 +447,9 @@ def polar_only_legend(image, result, position="bottom_right"):
         x = cx
         y = cy + r
 
-        label(draw, x, y, f"{v:.2f}", FONT, align="center")
+        label(draw, x, y, f"{v:.2f}", font, align="center")
 
-    return _paste_box(image, overlay, position)
+    return _paste_box(image, overlay, style, position)
 
 
 
