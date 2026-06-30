@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import QWidget, QFileDialog
 from PyQt6 import QtCore
 
 # Internal support
-from paths import CACHE_DIR
+from ..app.paths import CACHE_DIR
 
 
 

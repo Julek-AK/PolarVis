@@ -8,19 +8,19 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
 
 # Internal
-from paths import UI_DIR
+from ..app.paths import UI_DIR
 
-from gui.pipeline_dialog import PipelineDialog
-from gui.calibration_dialog import CalibrationDialog
-from gui.window_init import MainWindowConstructor
+from ..gui.pipeline_dialog import PipelineDialog
+from ..gui.calibration_dialog import CalibrationDialog
+from ..gui.window_init import MainWindowConstructor
 
-from core.pipeline import VideoPipeline
+from ..core.pipeline import VideoPipeline
 
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi(UI_DIR / "mainwindow2.ui", self)  # loads UI into this instance
+        uic.loadUi(UI_DIR / "mainwindow.ui", self)  # loads UI into this instance
 
         MainWindowConstructor(self).setup()
 

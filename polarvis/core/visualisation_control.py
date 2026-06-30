@@ -7,8 +7,8 @@ from typing import Callable, Optional
 from numpy.typing import NDArray
 
 # Internal Support
-from processing import image_visualisation as vis
-from processing import image_legend as legend
+from ..processing import image_visualisation as vis
+from ..processing import image_legend as legend
 
 
 @dataclass

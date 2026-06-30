@@ -9,13 +9,13 @@ import sys
 from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout
 
 # Internal Support
-from streams import TeeStream
-from core.pipeline import ImagePipeline
-from core.console_redirector import ConsoleRedirector
-from core.file_manager import ImageFileManager, CacheManager
-from core.calibration_manager import CalibrationManager
-from gui.visualisation_panel import VisualisationPanel
-from gui.calibration_panel import CalibrationPanel
+from ..app.streams import TeeStream
+from ..core.pipeline import ImagePipeline
+from ..core.console_redirector import ConsoleRedirector
+from ..core.file_manager import ImageFileManager, CacheManager
+from ..core.calibration_manager import CalibrationManager
+from ..gui.visualisation_panel import VisualisationPanel
+from ..gui.calibration_panel import CalibrationPanel
 
 
 class MainWindowConstructor:

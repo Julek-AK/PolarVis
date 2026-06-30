@@ -10,8 +10,8 @@ from typing import Dict, Optional
 from datetime import datetime
 
 # Internal
-from processing.calibration import CalibrationInput, PolarizerModel
-from core.calibration_manager import CalibrationManager
+from ..processing.calibration import CalibrationInput, PolarizerModel
+from ..core.calibration_manager import CalibrationManager
 
 
 VALID_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}

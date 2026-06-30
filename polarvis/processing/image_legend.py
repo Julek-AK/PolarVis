@@ -26,6 +26,7 @@ class LegendStyle:
     inner_padding: int
     header_height: int
     font: ImageFont.FreeTypeFont
+    text_padding: int
 
 
 LEGEND_STYLES = {
@@ -35,6 +36,7 @@ LEGEND_STYLES = {
         inner_padding=8,
         header_height=22,
         font=ImageFont.truetype("arial.ttf", 12),
+        text_padding=3,
     ),
 
     'large': LegendStyle(
@@ -43,6 +45,7 @@ LEGEND_STYLES = {
         inner_padding=14,
         header_height=38,
         font=ImageFont.truetype("arial.ttf", 21),
+        text_padding=5,
     ),
 }
 
@@ -129,8 +132,10 @@ def _hsv_color(h, s=1.0, v=1.0):
 
 def label(draw, x, y, text, font, align="left", padding=3):
     bbox = draw.textbbox((0, 0), text, font=font)
-    w = bbox[2] - bbox[0]
-    h = bbox[3] - bbox[1]
+    left, top, right, bottom = bbox
+
+    w = right - left
+    h = bottom - top
 
     if align == "center":
         x -= w // 2
@@ -139,10 +144,10 @@ def label(draw, x, y, text, font, align="left", padding=3):
         x -= w
 
     rect = [
-        x - padding,
-        y - padding,
-        x + w + padding,
-        y + h + padding
+        x + left - padding,
+        y + top - padding,
+        x + right + padding,
+        y + bottom + padding,
     ]
 
     draw.rectangle(rect, fill=(0, 0, 0, 160))
@@ -177,7 +182,8 @@ def scalar_legend(image, result, position="bottom_right", size="large"):
         style.inner_padding,
         result.label,
         font,
-        align="left"
+        align="left",
+        padding=style.text_padding
     )
 
     y0 = style.inner_padding + style.header_height
@@ -202,11 +208,11 @@ def scalar_legend(image, result, position="bottom_right", size="large"):
     bx = style.inner_padding + bar_w + 8
     by = y0 - 2
 
-    label(draw, bx, by             , "1.00", font, align="center")
-    label(draw, bx, by + bar_h*0.25, "0.75", font, align="center")
-    label(draw, bx, by + bar_h*0.5 , "0.50", font, align="center")
-    label(draw, bx, by + bar_h*0.75, "0.25", font, align="center")
-    label(draw, bx, by + bar_h     , "0.00", font, align="center")
+    label(draw, bx, by             , "1.00", font, align="center", padding=style.text_padding)
+    label(draw, bx, by + bar_h*0.25, "0.75", font, align="center", padding=style.text_padding)
+    label(draw, bx, by + bar_h*0.5 , "0.50", font, align="center", padding=style.text_padding)
+    label(draw, bx, by + bar_h*0.75, "0.25", font, align="center", padding=style.text_padding)
+    label(draw, bx, by + bar_h     , "0.00", font, align="center", padding=style.text_padding)
 
     return _paste_box(image, overlay, style, position)
 
@@ -238,7 +244,8 @@ def angle_legend(image, result, position="bottom_right", size="large"):
         style.inner_padding,
         "AoP",
         font,
-        align="left"
+        align="left",
+        padding=style.text_padding
     )
 
     # Hue wheel
@@ -267,7 +274,7 @@ def angle_legend(image, result, position="bottom_right", size="large"):
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, font, align="center")
+        label(draw, x, y, text, font, align="center", padding=style.text_padding)
 
     return _paste_box(image, overlay, style, position)
 
@@ -298,7 +305,8 @@ def polarimetric_legend(image, result, position="bottom_right", size="large"):
         style.inner_padding,
         "AoP DoLP Intensity",
         font,
-        align="left"
+        align="left",
+        padding=style.text_padding
     )
 
     # Polar wheel
@@ -339,7 +347,7 @@ def polarimetric_legend(image, result, position="bottom_right", size="large"):
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, font, align="center")
+        label(draw, x, y, text, font, align="center", padding=style.text_padding)
 
     # DoLP labels
     dolp_labels = [0.25, 0.50, 0.75, 1.00]
@@ -349,7 +357,7 @@ def polarimetric_legend(image, result, position="bottom_right", size="large"):
         x = cx
         y = cy + r
 
-        label(draw, x, y, f"{v:.2f}", font, align="center")
+        label(draw, x, y, f"{v:.2f}", font, align="center", padding=style.text_padding)
 
     # Intensity bar
     bar_w = px(14, scale)
@@ -364,9 +372,9 @@ def polarimetric_legend(image, result, position="bottom_right", size="large"):
 
     overlay.paste(intensity_bar, (bx, by))
 
-    label(draw, bx, by + bar_h, "0.0", font, align="center")
-    label(draw, bx, by + bar_h/2, "0.5", font, align="center")
-    label(draw, bx, by, "1.0", font, align="center")
+    label(draw, bx, by + bar_h, "0.0", font, align="center", padding=style.text_padding)
+    label(draw, bx, by + bar_h/2, "0.5", font, align="center", padding=style.text_padding)
+    label(draw, bx, by, "1.0", font, align="center", padding=style.text_padding)
 
     return _paste_box(image, overlay, style, position)
 
@@ -397,7 +405,8 @@ def polar_only_legend(image, result, position="bottom_right", size="large"):
         style.inner_padding,
         "AoP DoLP",
         font,
-        align="left"
+        align="left",
+        padding=style.text_padding
     )
 
     # Polar encoding
@@ -437,7 +446,7 @@ def polar_only_legend(image, result, position="bottom_right", size="large"):
         x = cx + r_text * np.cos(theta)
         y = cy - r_text * np.sin(theta)
 
-        label(draw, x, y, text, font, align="center")
+        label(draw, x, y, text, font, align="center", padding=style.text_padding)
 
     # DoLP labels
     dolp_labels = [0.25, 0.50, 0.75, 1.00]
@@ -447,15 +456,15 @@ def polar_only_legend(image, result, position="bottom_right", size="large"):
         x = cx
         y = cy + r
 
-        label(draw, x, y, f"{v:.2f}", font, align="center")
+        label(draw, x, y, f"{v:.2f}", font, align="center", padding=style.text_padding)
 
     return _paste_box(image, overlay, style, position)
 
 
 
 if __name__ == "__main__":
-    from paths import TEST_OUT_DIR
-    from processing.image_visualisation import VisualisationResult
+    from polarvis.app.paths import TEST_OUT_DIR
+    from polarvis.processing.image_visualisation import VisualisationResult
 
     SCALE = 5
 
@@ -463,12 +472,18 @@ if __name__ == "__main__":
         "polar_only": polar_only_legend,
         "polarimetric": polarimetric_legend,
         "angle": angle_legend,
-        "scalar": scalar_legend,
+        "intensity": scalar_legend,
+        "dolp": scalar_legend,
     }
 
+    print("Exporting legends...")
+
     for name, func in legends.items():
-        img = Image.new("RGB", (300, 300), (0, 0, 0))
-        result = VisualisationResult(img, 'gist_gray', "Intensity")
+        img = Image.new("RGB", (500, 500), (0, 0, 0))
+        if name == "intensity":
+            result = VisualisationResult(img, 'gray', "Intensity")
+        else:
+            result = VisualisationResult(img, "viridis", "DoLP")
 
         out = func(img, result)
 
@@ -477,6 +492,6 @@ if __name__ == "__main__":
             Image.Resampling.NEAREST
         )
 
-        out.save(TEST_OUT_DIR / f"{name}_legend.png", dpi=(300, 300))
+        out.save(TEST_OUT_DIR / f"legend_{name}.png", dpi=(300, 300))
 
-    print("Export complete.")
+    print("Export complete")

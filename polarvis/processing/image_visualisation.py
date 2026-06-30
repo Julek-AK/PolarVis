@@ -17,10 +17,12 @@ import torch
 from matplotlib import pyplot as plt
 
 # Internal Support
-from core.utils import *
+from ..core.utils import *
 
 # Convenient color conversions
 hsv_to_rgb_vec = np.vectorize(colorsys.hsv_to_rgb)
+
+# TODO use the vectorised conversion implemented in legend. or actually, just move that shit to utils. or actually, make a utils module
 
 
 @dataclass
@@ -42,7 +44,7 @@ def cmap_to_img(img_arr: NDArray, cmap: str) -> Image.Image:
     return img
 
 
-def pure_intensity(img_data: NDArray, cmap: str ='gist_gray') -> VisualisationResult:
+def pure_intensity(img_data: NDArray, cmap: str ='gray') -> VisualisationResult:
     """
     Creates a pure colormap of image intensity
     """

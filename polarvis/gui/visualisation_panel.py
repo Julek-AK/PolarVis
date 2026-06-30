@@ -6,7 +6,7 @@ from PyQt6 import QtWidgets, QtGui, QtCore
 import numpy as np
 
 # Internal Support
-from core.visualisation_control import (
+from ..core.visualisation_control import (
     list_visualisations,
     generate_visualisation,
     generate_legend

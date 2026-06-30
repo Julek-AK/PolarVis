@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
-from processing.torch_backend import calibrated_resolve_polarization
+from ..processing.torch_backend import calibrated_resolve_polarization
 
 
 def hsv_to_rgb_vec(hsv: NDArray) -> NDArray:

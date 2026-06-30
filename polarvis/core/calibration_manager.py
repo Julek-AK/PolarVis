@@ -10,8 +10,8 @@ import re
 import unicodedata
 
 # Internal support
-from paths import CALIBRATION_DIR, ROOT
-from processing.calibration import Calibration, CalibrationInput, CalibrationConstructor
+from ..app.paths import CALIBRATION_DIR
+from ..processing.calibration import Calibration, CalibrationInput, CalibrationConstructor
 
 # External libraries
 import numpy as np

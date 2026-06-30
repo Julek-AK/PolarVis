@@ -2,12 +2,12 @@
 low-level torch functions that process image arrays 
 """
 
-from core.utils import *
+from ..core.utils import *
 import torch
 
 import numpy as np
 from numpy.typing import NDArray
-from processing.calibration import Calibration
+from ..processing.calibration import Calibration
 
 
 # =============================================

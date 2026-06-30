@@ -407,24 +407,24 @@
   <customwidget>
    <class>ImageView</class>
    <extends>QGraphicsView</extends>
-   <header>gui.image_view</header>
+   <header>polarvis.gui.image_view</header>
   </customwidget>
   <customwidget>
    <class>VisualisationPanel</class>
    <extends>QFrame</extends>
-   <header>gui.visualisation_panel</header>
+   <header>polarvis.gui.visualisation_panel</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PixelInfoPanel</class>
    <extends>QFrame</extends>
-   <header>gui.pixel_info_panel</header>
+   <header>polarvis.gui.pixel_info_panel</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>CalibrationPanel</class>
    <extends>QFrame</extends>
-   <header>gui.calibration_panel</header>
+   <header>polarvis.gui.calibration_panel</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

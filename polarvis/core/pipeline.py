@@ -4,8 +4,8 @@ import numpy as np
 from numpy.typing import NDArray
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from core.utils import raw_to_metapixel_channels
-from core.image_validation import ValidationError, ValidationWarning, validate_calibration
+from ..core.utils import raw_to_metapixel_channels
+from ..core.image_validation import ValidationError, ValidationWarning, validate_calibration
 
 
 class PipelineWorker(QThread):
@@ -21,7 +21,7 @@ class PipelineWorker(QThread):
 
     # Calibrated metapixel proceesing
     def run(self):
-        from processing.torch_backend import calibrated_resolve_polarization
+        from polarvis.processing.torch_backend import calibrated_resolve_polarization
 
         try:
             sol_array = calibrated_resolve_polarization(
@@ -82,8 +82,8 @@ class VideoPipeline():
 
     def process(self, input_path, output_path):
         import cv2
-        from processing.torch_backend import calibrated_resolve_polarization
-        from processing.video_processing import arr_to_polarimetric, cleanup_frame
+        from polarvis.processing.torch_backend import calibrated_resolve_polarization
+        from polarvis.processing.video_processing import arr_to_polarimetric, cleanup_frame
 
         cap = cv2.VideoCapture(input_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
