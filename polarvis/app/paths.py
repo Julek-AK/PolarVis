@@ -13,6 +13,11 @@ APP_DIR = PACKAGE_ROOT / "app"
 CORE_DIR = PACKAGE_ROOT / "core"
 GUI_DIR = PACKAGE_ROOT / "gui"
 PROCESSING_DIR = PACKAGE_ROOT / "processing"
+IO_DIR = PACKAGE_ROOT / "io"
+UTILS_DIR = PACKAGE_ROOT / "utils"
+
+# Code subdirectories
+CONFIG_DIR = APP_DIR / "config"
 
 # Project directories
 DATA_DIR = PROJECT_ROOT / "data"

@@ -22,17 +22,15 @@ class MainWindowConstructor:
     def __init__(self, window):
         self.window = window
 
-    # =============================================
-    # INITIALIZATION FUNCTIONS
-    # =============================================
     def setup(self):
+        self.init_console()
+        
         self.init_managers()
         self.init_pipelines()
         self.init_visualisation()
         self.init_calibration()
 
         self.init_menu_bar()
-        self.init_console()
         self.init_image_display()
 
     def init_console(self):

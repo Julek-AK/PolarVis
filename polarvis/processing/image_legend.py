@@ -54,11 +54,11 @@ LEGEND_STYLES = {
 # HELPERS
 # =============================================
 
-def get_legend_style(size: str = 'small') -> LegendStyle:
+def get_legend_style(style: str = 'small') -> LegendStyle:
     try:
-        return LEGEND_STYLES[size]
+        return LEGEND_STYLES[style]
     except KeyError:
-        raise ValueError(f"[Rendering] Unknown legend size: {size}")
+        raise ValueError(f"[Rendering] Unknown legend style: {style}")
 
 
 def px(value, scale):
