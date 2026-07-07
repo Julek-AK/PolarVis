@@ -4,30 +4,19 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
-from ..processing.torch_backend import calibrated_resolve_polarization
-from ..utils.color_ops import hsv_to_rgb_vec
+from ..processing.image_visualisation import polarimetric_colormap
 
 
-
-
-def arr_to_polarimetric(img_data: NDArray, angle_cmap: str = 'hsv') -> NDArray[np.uint8]:
+def arr_to_polarimetric(img_data: NDArray, cmap: str = 'hsv') -> NDArray[np.uint8]:
     """
-    Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
+    Return a numpy array with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
-    if angle_cmap != 'hsv':
-        raise NotImplementedError("[Visualisation] Polarimetric visualisation techniques other than standard HSV are not implemented yet.")
 
-    brightness = img_data[..., 0] / 2 # Intensity
+    result = polarimetric_colormap(img_data, cmap)
+    img = result.image
+    arr = np.array(img).astype(np.uint8)
 
-    saturation = img_data[..., 1]  # DOLP
-
-    angle = np.mod(img_data[..., 2], np.pi)  # Theta
-    hue = angle / np.pi
-
-    rgb = hsv_to_rgb_vec(np.stack((hue, saturation, brightness), axis=-1))
-    rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
-
-    return rgb_uint8
+    return arr
 
 
 def cleanup_frame(frame: NDArray) -> NDArray:
@@ -37,9 +26,7 @@ def cleanup_frame(frame: NDArray) -> NDArray:
     if frame.ndim == 3 and frame.shape[2] == 3:
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    raise ValueError(
-        f'Unsupported frame shape {frame.shape}'
-    )   
+    raise ValueError(f"Unsupported frame shape {frame.shape}")  
 
 
 if __name__ == "__main__":
@@ -53,3 +40,4 @@ if __name__ == "__main__":
     print('Frame count:', cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     cap.release()
+    

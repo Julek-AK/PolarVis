@@ -7,22 +7,17 @@ all of these take in arrays of processed image data (i.e. one where each pixel h
 
 # Builtins
 from PIL import Image
-import colorsys
 from dataclasses import dataclass
 
 # External Libraries
 import numpy as np
 from numpy.typing import NDArray
-import torch
 from matplotlib import pyplot as plt
 
 # Internal Support
 from ..utils.array_ops import *
+from ..utils.color_ops import hsv_to_rgb_vec
 
-# Convenient color conversions
-hsv_to_rgb_vec = np.vectorize(colorsys.hsv_to_rgb)
-
-# TODO use the vectorised conversion implemented in legend. or actually, just move that shit to utils. or actually, make a utils module
 
 
 @dataclass
@@ -87,54 +82,53 @@ def pure_theta(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     )
 
 
-def polarimetric_colormap(img_data: NDArray, angle_cmap: str = 'hsv') -> VisualisationResult:
+def polarimetric_colormap(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
-    if angle_cmap != 'hsv':
+    if cmap != 'hsv':
         raise NotImplementedError("[Visualisation] Polarimetric visualisation techniques other than standard HSV are not implemented yet.")
 
-    brightness = img_data[..., 0] / 2 # Intensity
+    hsv = np.ones_like(img_data)
 
-    saturation = img_data[..., 1]  # DOLP
+    hsv[..., 2] = img_data[..., 0] / 2  # Intensity
+
+    hsv[..., 1] = img_data[..., 1]  # DOLP
 
     angle = np.mod(img_data[..., 2], np.pi)  # Theta
-    hue = angle / np.pi
+    hsv[..., 0] = angle / np.pi
 
-    r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
-    rgb = np.stack([r, g, b], axis=-1)
+    rgb = hsv_to_rgb_vec(hsv)
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
     image = Image.fromarray(rgb_uint8)
 
     return VisualisationResult(
         image=image,
-        cmap=angle_cmap,
+        cmap=cmap,
         label="AoP DoLP Intensity"
     )
 
 
-def polar_data(img_data: NDArray, angle_cmap: str = 'hsv') -> VisualisationResult:
+def polar_data(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     """
     Displays exclusively polarization data, neglecting original image brightness
     """
-    if angle_cmap != 'hsv':
+    if cmap != 'hsv':
         raise NotImplementedError("[Visualisation] Polarimetric visualisation techniques other than standard HSV are not implemented yet.")
-   
-    brightness = np.ones_like(img_data[..., 0])  # Brightness override
 
-    saturation = img_data[..., 1]  # DOLP
+    hsv = np.ones_like(img_data)  # Brightness override
+
+    hsv[..., 1] = img_data[..., 1]  # DOLP
 
     angle = np.mod(img_data[..., 2], np.pi)  # Theta
-    hue = angle / np.pi
+    hsv[..., 0] = angle / np.pi
 
-    r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
-    rgb = np.stack([r, g, b], axis=-1)
+    rgb = hsv_to_rgb_vec(hsv)
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
     image = Image.fromarray(rgb_uint8)
 
     return VisualisationResult(
         image=image,
-        cmap=angle_cmap,
+        cmap=cmap,
         label="AoP DoLP"
     )
-
