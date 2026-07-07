@@ -1,14 +1,11 @@
 """
-Bunch of helper functions for all kinds of things,
-primarily array manipulations
+Utility functions for array operations
 """
 
 # External Imports
 import numpy as np
 from numpy.typing import NDArray
-from torch import cuda
 
-# TODO huge risk that some polarized filter angles and channel ordering is ambiguous
 
 def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     """
@@ -17,6 +14,7 @@ def raw_to_metapixels(image_arr: NDArray) -> NDArray:
     H, W = image_arr.shape
     metapx_arr = image_arr.reshape(H // 2, 2, W // 2, 2).swapaxes(1, 2)
     return metapx_arr
+
 
 def raw_to_metapixel_channels(image_arr: NDArray) -> NDArray: 
     """
@@ -38,6 +36,7 @@ def raw_to_metapixel_channels(image_arr: NDArray) -> NDArray:
     out[..., 3] = image_arr[1::2, 1::2]
 
     return out
+
 
 def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
     """
@@ -98,19 +97,6 @@ def pixel_list_to_metapixels(top_left: NDArray, top_right: NDArray, bottom_left:
     return metapx_arr
 
 
-def describe(arr: NDArray) -> tuple[float, float, float, float, float]:
-    """
-    Compute the minimum, maximum, Q1, Q2 and Q3 of an array
-    """
-    minimum = np.min(arr)
-    Q1 = np.percentile(arr, 25)
-    Q2 = np.median(arr)
-    Q3 = np.percentile(arr, 75)
-    maximum = np.max(arr)
-
-    return minimum, Q1, Q2, Q3, maximum
-
-
 def simulate_image(data: NDArray) -> NDArray:
     """
     Simulate an expected image given the data about polarized and unpolarized intensity and angle
@@ -138,9 +124,3 @@ def simulate_image(data: NDArray) -> NDArray:
 
     return out
 
-def cuda_check() -> None:
-    availability = cuda.is_available()
-    name = cuda.get_device_name(0)
-
-    print(f"CUDA avaialable: {availability}")
-    print(f"Used device: {name}")

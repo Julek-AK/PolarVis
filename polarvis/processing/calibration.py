@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 
 # Internal support
-from ..core.utils import raw_to_metapixel_channels
+from ..utils.array_ops import raw_to_metapixel_channels
 
 # External libraries
 import numpy as np

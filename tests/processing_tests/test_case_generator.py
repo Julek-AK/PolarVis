@@ -10,7 +10,7 @@ import numpy as np
 import scipy as scp
 
 # Internal
-from polarvis.core.utils import simulate_image
+from polarvis.utils.array_ops import simulate_image
 
 
 @dataclass

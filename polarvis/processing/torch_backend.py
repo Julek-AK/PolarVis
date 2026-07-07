@@ -2,7 +2,7 @@
 low-level torch functions that process image arrays 
 """
 
-from ..core.utils import *
+from ..utils.array_ops import *
 import torch
 
 import numpy as np

@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from ..core.utils import raw_to_metapixel_channels
+from ..utils.array_ops import raw_to_metapixel_channels
 from ..core.image_validation import ValidationError, ValidationWarning, validate_calibration
 
 

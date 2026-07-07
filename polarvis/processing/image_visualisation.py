@@ -17,7 +17,7 @@ import torch
 from matplotlib import pyplot as plt
 
 # Internal Support
-from ..core.utils import *
+from ..utils.array_ops import *
 
 # Convenient color conversions
 hsv_to_rgb_vec = np.vectorize(colorsys.hsv_to_rgb)
