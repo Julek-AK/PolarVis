@@ -8,6 +8,7 @@ DEFAULT_SETTINGS = {
 
     'display': {
         'theme': 'system',
+        'autoscale': True,
     },
 
     'processing': {

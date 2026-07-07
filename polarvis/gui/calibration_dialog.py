@@ -37,7 +37,6 @@ class CalibrationWorker(QtCore.QThread):
 
 
 class CalibrationDialog(QDialog):
-    # TODO transfer UI construction into a self-contained .ui file
     def __init__(self, manager: CalibrationManager, parent=None):
         super().__init__(parent)
 
@@ -46,6 +45,10 @@ class CalibrationDialog(QDialog):
 
         self.paths: Dict[str, Path] = {}
 
+        self._build_ui()
+
+
+    def _build_ui(self):
         layout = QVBoxLayout(self)
 
         # Metadata inputs
@@ -114,7 +117,6 @@ class CalibrationDialog(QDialog):
         self.run_button = QPushButton("Run Calibration")
         self.run_button.clicked.connect(self._run_calibration)
         layout.addWidget(self.run_button)
-
 
     # Folder selector builder
     def _add_folder_selector(self, parent_layout, key, label):

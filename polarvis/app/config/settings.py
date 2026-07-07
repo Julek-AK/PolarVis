@@ -91,6 +91,9 @@ class SettingsManager:
 
         self._loaded = True
     
+    def update(self, new_settings: dict):
+        self._settings = new_settings
+        self.save()
 
     def save(self):
         """Save the settings into user_settings.json"""

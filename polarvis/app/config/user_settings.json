@@ -1,2 +1,33 @@
 {
+    "camera": {
+        "channel_order": [
+            90,
+            45,
+            135,
+            0
+        ]
+    },
+    "display": {
+        "autoscale": true,
+        "theme": "system"
+    },
+    "general": {},
+    "paths": {
+        "export_data": "default",
+        "open_file": "default",
+        "open_folder": "default",
+        "save_visualization": "C:/Users/juliu/OneDrive - Delft University of Technology/Bureaublad/Honours Programme/Pictures For Publishing"
+    },
+    "processing": {
+        "use_gpu": true
+    },
+    "settings_version": 1,
+    "visualization": {
+        "colormaps": {
+            "aop": "hsv",
+            "dolp": "viridis",
+            "intensity": "grey"
+        },
+        "legend_style": "small"
+    }
 }

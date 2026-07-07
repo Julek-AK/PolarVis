@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 
 # Internal
 from ..app.config.settings import settings
+from ..gui.settings_edit_dialog import SettingsEditDialog
 
 
 class SettingsDisplayPanel(QFrame):
@@ -55,28 +56,34 @@ class SettingsDisplayPanel(QFrame):
         layout.addWidget(self.tree)
 
     def _load_settings(self):
+        
         self.tree.clear()
 
-        data = settings._settings  # internal access for display only
+        self._add_tree_items(
+            self.tree.invisibleRootItem(),
+            settings._settings  # internal access for display only
+        )
 
-        flat = self._flatten_dict(data)
+    def _add_tree_items(self, parent, data):
 
-        for key, value in flat.items():
-            item = QTreeWidgetItem([key, str(value)])
-            self.tree.addTopLevelItem(item)
+        for key, value in data.items():
 
-    def _flatten_dict(self, d, parent_key=""):
-        items = {}
+            item = QTreeWidgetItem(parent)
+            item.setText(0, key)
 
-        for k, v in d.items():
-            new_key = f"{parent_key}.{k}" if parent_key else k
+            if isinstance(value, dict):
+                self._add_tree_items(item, value)
 
-            if isinstance(v, dict):
-                items.update(self._flatten_dict(v, new_key))
             else:
-                items[new_key] = v
+                item.setText(1, str(value))
 
-        return items
-    
     def _on_edit_clicked(self):
-        pass
+        dialog = SettingsEditDialog(settings._settings, self)
+
+        if dialog.exec():
+
+            settings.update(
+                dialog.edited_settings
+            )
+
+            self._load_settings()
