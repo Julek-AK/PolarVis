@@ -7,7 +7,11 @@ from numpy import degrees
 import numpy as np
 
 # Internal Support
+from ..app.config.settings import settings
 
+INTENSITY_CMAP = settings.get('visualization.colormaps.intensity')
+DOLP_CMAP = settings.get('visualization.colormaps.dolp')
+AOP_CMAP = settings.get('visualization.colormaps.aop')
 
 class PixelInfoPanel(QtWidgets.QFrame):
     def __init__(self, parent=None):
@@ -24,10 +28,9 @@ class PixelInfoPanel(QtWidgets.QFrame):
         self.dolp_label = QtWidgets.QLabel("Degree of Linear Polarization:")
         self.theta_label = QtWidgets.QLabel("Polarization Angle:")
 
-        # self.intensity_scale = ColorScaleWidget("magma", 0, 255)
-        self.intensity_scale = ColorScaleWidget("gist_gray", 0, 255)
-        self.dolp_scale = ColorScaleWidget("viridis", 0, 1)
-        self.theta_scale = ColorScaleWidget("hsv", 0, 180)
+        self.intensity_scale = ColorScaleWidget(INTENSITY_CMAP, 0, 255)
+        self.dolp_scale = ColorScaleWidget(DOLP_CMAP, 0, 1)
+        self.theta_scale = ColorScaleWidget(AOP_CMAP, 0, 180)
         self.theta_display = AngleWidget()
 
         layout.addWidget(title, 0, 0)

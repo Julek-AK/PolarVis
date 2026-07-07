@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import webbrowser
 
 # External
 from PyQt6 import uic
@@ -13,6 +14,7 @@ from ..app.paths import UI_DIR
 from ..gui.pipeline_dialog import PipelineDialog
 from ..gui.calibration_dialog import CalibrationDialog
 from ..gui.window_init import MainWindowConstructor
+from ..gui.window_init import UISettingsController
 
 from ..core.pipeline import VideoPipeline
 
@@ -23,7 +25,7 @@ class MainWindow(QMainWindow):
         uic.loadUi(UI_DIR / "mainwindow.ui", self)  # loads UI into this instance
 
         MainWindowConstructor(self).setup()
-
+        # UISettingsController(self).apply()
 
     # =============================================
     # CONSOLE
@@ -156,6 +158,8 @@ class MainWindow(QMainWindow):
         raise NotImplementedError
 
     def run_video_process(self) -> None:
+        raise NotImplementedError
+
         cal, cal_id = self.calibration_manager.require_current_calibration()
 
         INPUT_PATH = r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\Media\Lens Testing Again\bent_ruler.avi"
@@ -166,7 +170,7 @@ class MainWindow(QMainWindow):
         
 
     # =============================================
-    # IMAGE VISUALISATION
+    # FILE HANDLING
     # =============================================
     def load_raw_image(self) -> None:
         filename = self.file_manager.select_file(self)
@@ -175,9 +179,19 @@ class MainWindow(QMainWindow):
 
         self.graphicsView.display_image(self, filename)
 
-    # here comes all the other stuff related to visualising
+    def export(self) -> None:
+        raise NotImplementedError
 
 
+    # =============================================
+    # FILE HANDLING
+    # =============================================
+
+    def open_github(self) -> None:
+        if webbrowser.open("https://github.com/Julek-AK/PolarVis"):
+            print("Opened the GitHub repository in browser.")
+        else:
+            raise RuntimeError("[Menu] Failed to open the default web browser.")
 
 def run_main_window():
     app = QApplication(sys.argv)

@@ -114,6 +114,8 @@ class SettingsManager:
 
         value = _resolve_get(self._settings, key)
         if value is None:
+            if default is None:
+                raise ValueError(f"[Settings] None type retrieved for setting: {key}")
             return default
         return value
 

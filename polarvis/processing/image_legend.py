@@ -8,6 +8,9 @@ from PIL import Image, ImageDraw, ImageFont
 from matplotlib import pyplot as plt
 from colorsys import hsv_to_rgb
 
+# Internal
+from ..app.config.settings import settings
+
 
 
 # =============================================
@@ -158,10 +161,10 @@ def label(draw, x, y, text, font, align="left", padding=3):
 # SCALAR LEGEND
 # =============================================
 
-def scalar_legend(image, result, position="bottom_right", size="large"):
+def scalar_legend(image, result, position="bottom_right"):
     cmap = plt.get_cmap(result.cmap)
 
-    style = get_legend_style(size)
+    style = get_legend_style(settings.get('visualization.legend_style'))
     scale = style.scale
     font = style.font
 
@@ -221,8 +224,8 @@ def scalar_legend(image, result, position="bottom_right", size="large"):
 # ANGLE LEGEND (AoP)
 # =============================================
 
-def angle_legend(image, result, position="bottom_right", size="large"):
-    style = get_legend_style(size)
+def angle_legend(image, result, position="bottom_right"):
+    style = get_legend_style(settings.get('visualization.legend_style'))
     scale = style.scale
     font = style.font
 
@@ -283,8 +286,8 @@ def angle_legend(image, result, position="bottom_right", size="large"):
 # POLARIMETRIC LEGEND (AoP + DoLP + Intensity)
 # =============================================
 
-def polarimetric_legend(image, result, position="bottom_right", size="large"):
-    style = get_legend_style(size)
+def polarimetric_legend(image, result, position="bottom_right"):
+    style = get_legend_style(settings.get('visualization.legend_style'))
     scale = style.scale
     font = style.font
 
@@ -383,8 +386,8 @@ def polarimetric_legend(image, result, position="bottom_right", size="large"):
 # POLAR-ONLY LEGEND (AoP + DoLP only)
 # =============================================
 
-def polar_only_legend(image, result, position="bottom_right", size="large"):
-    style = get_legend_style(size)
+def polar_only_legend(image, result, position="bottom_right"):
+    style = get_legend_style(settings.get('visualization.legend_style'))
     scale = style.scale
     font = style.font
 
@@ -463,8 +466,10 @@ def polar_only_legend(image, result, position="bottom_right", size="large"):
 
 
 if __name__ == "__main__":
-    from polarvis.app.paths import TEST_OUT_DIR
-    from polarvis.processing.image_visualisation import VisualisationResult
+    from ..app.paths import TEST_OUT_DIR
+    from ..processing.image_visualisation import VisualisationResult
+    from ..app.config.settings import settings
+    settings.load()
 
     SCALE = 5
 

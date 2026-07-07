@@ -87,43 +87,6 @@ def pure_theta(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     )
 
 
-def tinted_theta(img_data, hue=0):
-    """
-    Creates a pure intensity image, adds color depending on polarization angle
-    """
-    raise DeprecationWarning("[Visualisation] tinted colormaps are deprecated.")
-
-    brightness = img_data[..., 0] / 2 # Intensity
-
-    angle = np.mod(img_data[..., 2], np.pi)  # Theta
-    saturation = angle / np.pi
-
-    r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
-    rgb = np.stack([r, g, b], axis=-1)
-    rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
-    image = Image.fromarray(rgb_uint8)
-
-    return image
-
-
-def tinted_DoLP(img_data, hue=0):
-    """
-    Creates a pure intensity image, adds color depending on degree of linear polarization
-    """
-    raise DeprecationWarning("[Visualisation] tinted colormaps are deprecated.")
-
-    brightness = img_data[..., 0] / 2 # Intensity
-
-    saturation = img_data[..., 1]  # DOLP
-
-    r, g, b = hsv_to_rgb_vec(hue, saturation, brightness)
-    rgb = np.stack([r, g, b], axis=-1)
-    rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
-    image = Image.fromarray(rgb_uint8)
-
-    return image
-
-
 def polarimetric_colormap(img_data: NDArray, angle_cmap: str = 'hsv') -> VisualisationResult:
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue

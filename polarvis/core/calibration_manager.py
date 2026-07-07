@@ -10,6 +10,7 @@ import re
 import unicodedata
 
 # Internal support
+from ..app.config.settings import settings
 from ..app.paths import CALIBRATION_DIR
 from ..processing.calibration import Calibration, CalibrationInput, CalibrationConstructor
 
@@ -26,8 +27,9 @@ from PyQt6 import QtCore
 
 
 FILE_FORMAT_VERSION = 1
+DEFAULT_CALIBRATION_CHANNELS = settings.get('camera.channel_order')
 
-# TODO THE CALIBRATION SELECTED IN THE PANEL ISN'T ACTUALLY CONNECTED TO ANYTHING
+
 
 class CalibrationManager(QtCore.QObject):
     """Orchestrates and manages loading, saving and computing calibration."""
@@ -275,12 +277,8 @@ class CalibrationManager(QtCore.QObject):
         flat = np.ones(shape)
 
         # Polarization reconstruction
-        PHIS = np.array([
-            np.pi / 2,   # channel 0 → top-left
-            np.pi / 4,   # channel 1 → top-right
-            -np.pi / 4,  # channel 2 → bottom-left
-            0.0             # channel 3 → bottom-right
-        ])
+        PHIS = np.array(DEFAULT_CALIBRATION_CHANNELS)
+        PHIS = np.radians(PHIS)
 
         A = 0.5 * np.stack([
             [1, np.cos(2 * phi), np.sin(2 * phi)]
@@ -303,7 +301,6 @@ class CalibrationManager(QtCore.QObject):
             resolution=shape,
             bit_depth=8,
         )
-
 
     def delete_calibration(self, cal_id: str):
         path = self.get_calibration_path(cal_id)

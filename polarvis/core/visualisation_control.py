@@ -9,44 +9,48 @@ from numpy.typing import NDArray
 # Internal Support
 from ..processing import image_visualisation as vis
 from ..processing import image_legend as legend
-
+from ..app.config.settings import settings
 
 @dataclass
 class VisualisationDefinition:
     name: str
     generator: Callable[..., vis.VisualisationResult]
     legend_renderer: Optional[Callable] = None
+    colormap : Optional[str] = None
 
 
 VISUALISATIONS: dict[str, VisualisationDefinition] = {
     'Pure Intensity': VisualisationDefinition(
         name="Pure Intensity",
         generator=vis.pure_intensity,
-        legend_renderer=legend.scalar_legend
+        legend_renderer=legend.scalar_legend,
+        colormap=settings.get('visualization.colormaps.intensity'),
     ),
 
     'Pure DoLP': VisualisationDefinition(
         name="Pure DoLP",
         generator=vis.pure_DoLP,
-        legend_renderer=legend.scalar_legend
+        legend_renderer=legend.scalar_legend,
+        colormap=settings.get('visualization.colormaps.dolp'),
     ),
 
     'Pure AoP': VisualisationDefinition(
         name="Pure AoP",
         generator=vis.pure_theta,
-        legend_renderer=legend.angle_legend
+        legend_renderer=legend.angle_legend,
+        colormap=settings.get('visualization.colormaps.aop'),
     ),
 
     'Full Polarimetric Colormap': VisualisationDefinition(
         name="Full Polarimetric Colormap",
         generator=vis.polarimetric_colormap,
-        legend_renderer=legend.polarimetric_legend
+        legend_renderer=legend.polarimetric_legend,
     ),
 
     'Polar Only': VisualisationDefinition(
         name="Polar Only",
         generator=vis.polar_data,
-        legend_renderer=legend.polar_only_legend
+        legend_renderer=legend.polar_only_legend,
     ),
 }
 
@@ -74,6 +78,11 @@ def generate_visualisation(
 ) -> vis.VisualisationResult:
     
     vis_def = get_visualisation(name)
+    
+    # Update colormap from settings
+    if vis_def.name in {"Pure Intensity", "Pure DoLP", "Pure AoP"}:
+        kwargs['cmap'] = vis_def.colormap
+
     return vis_def.generator(img_data, **kwargs)
 
 

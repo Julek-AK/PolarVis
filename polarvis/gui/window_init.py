@@ -6,10 +6,13 @@ Dedicated class for initializing all the functionality of the MainWindow
 import sys
 
 # External libraries
-from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout
+from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout, QApplication
+from PyQt6.QtGui import QPalette, QColor
 
 # Internal Support
 from ..app.streams import TeeStream
+from ..app.config.settings import settings
+
 from ..core.pipeline import ImagePipeline
 from ..core.console_redirector import ConsoleRedirector
 from ..core.file_manager import ImageFileManager, CacheManager
@@ -32,6 +35,7 @@ class MainWindowConstructor:
 
         self.init_menu_bar()
         self.init_image_display()
+        self.init_settings_panel()
 
     def init_console(self):
         gui_stdout = ConsoleRedirector()
@@ -51,6 +55,7 @@ class MainWindowConstructor:
     def init_menu_bar(self):
         # File
         self.window.actionLoad_Image.triggered.connect(self.window.load_raw_image)
+        self.window.actionExport_Data.triggered.connect(self.window.export)
 
         # Processing
         self.window.actionSingle_Processing.triggered.connect(self.window.run_single_process)
@@ -65,6 +70,9 @@ class MainWindowConstructor:
         self.window.actionInfoCache.triggered.connect(self.window.show_cache_info)
         self.window.actionBrowseCache.triggered.connect(self.window.browse_cache)
         self.window.actionClearCache.triggered.connect(self.window.clear_cache)
+
+        # Help
+        self.window.actionGitHub.triggered.connect(self.window.open_github)
 
     def init_image_display(self):
         self.window.scene = QGraphicsScene(self.window)
@@ -88,9 +96,47 @@ class MainWindowConstructor:
     def init_calibration(self):
         self.window.frame_calibration_panel.connect_manager(self.window.calibration_manager)
 
+    def init_settings_panel(self):
+        pass
 
 
+class UISettingsController:
+    def __init__(self, window):
+        self.window = window
+        self.settings = settings
 
+    def apply(self) -> None:
+        display = self.settings.get('display')
+
+        self._apply_theme(display.get('theme', 'system'))
+        self._apply_autoscale(display.get('autoscale', True))
+
+    def _apply_theme(self, theme: str) -> None:
+        if theme == 'dark':
+            self._apply_dark_theme()
+        elif theme == 'light':
+            self._apply_light_theme()
+        else:
+            self._apply_system_theme()
+
+    def _apply_dark_theme(self) -> None:
+        palette = QPalette()
+
+        palette.setColor(QPalette.ColorRole.Window, QColor(30, 30, 30))
+        palette.setColor(QPalette.ColorRole.WindowText, QColor(220, 220, 220))
+        palette.setColor(QPalette.ColorRole.Base, QColor(20, 20, 20))
+        palette.setColor(QPalette.ColorRole.Text, QColor(220, 220, 220))
+
+        QApplication.instance().setPalette(palette)
+
+    def _apply_light_theme(self) -> None:
+        QApplication.instance().setPalette(QApplication.style().standardPalette())
+
+    def _apply_system_theme(self) -> None:
+        QApplication.instance().setPalette(QApplication.style().standardPalette())
+
+    def _apply_autoscale(self, enabled: bool) -> None:
+        self.window.setProperty('autoscale_enabled', enabled)
 
 
 
