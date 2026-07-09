@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/polarvis.ico</file>
+    </qresource>
+</RCC>

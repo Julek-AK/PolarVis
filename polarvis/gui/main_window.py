@@ -1,20 +1,29 @@
 # Builtins
 import os
 import sys
+import ctypes
 import subprocess
 import webbrowser
 
+
+# Correct app icon maneuvers
+if sys.platform == 'win32':
+    import ctypes
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+        'Julek-AK.PolarVis.Application'
+    )
+
 # External
 from PyQt6 import uic
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox, QDialog
 
 # Internal
-from ..app.paths import UI_DIR
+from ..app.paths import UI_DIR, ICONS_DIR
 from ..app.config.settings import settings
 
-from ..gui.pipeline_dialog import PipelineDialog
 from ..gui.calibration_dialog import CalibrationDialog
-from ..gui.processing_dialogs import SingleProcessDialog
+from ..gui.processing_dialogs import SingleProcessDialog, BatchProcessDialog, VideoProcessDialog
 from ..gui.window_init import MainWindowConstructor
 from ..gui.window_init import UISettingsController
 from ..gui.export_dialog import ExportDialog
@@ -157,6 +166,19 @@ class MainWindow(QMainWindow):
 
 
     def run_batch_process(self) -> None:
+        # Calibration
+        cal, cal_id = self.calibration_manager.require_current_calibration()
+
+        dialog = BatchProcessDialog(
+            cal_id,
+            self.file_manager,
+            self
+        )
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        
+
         raise NotImplementedError
 
     def run_video_process(self) -> None:
@@ -197,6 +219,12 @@ class MainWindow(QMainWindow):
 def run_main_window():
     app = QApplication(sys.argv)
     window = MainWindow()
+
+    icon = QIcon(str(ICONS_DIR / "polarvis.ico"))
+
+    app.setWindowIcon(icon)
+    window.setWindowIcon(icon)
+
     window.show()
     sys.exit(app.exec())
 

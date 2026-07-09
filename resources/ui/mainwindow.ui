@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>PolarVis</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icons/polarvis.ico</normaloff>../icons/polarvis.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3,1">
     <item>
