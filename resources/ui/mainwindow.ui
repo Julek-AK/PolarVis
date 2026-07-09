@@ -226,6 +226,9 @@
             <property name="lineWrapMode">
              <enum>QPlainTextEdit::LineWrapMode::NoWrap</enum>
             </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>

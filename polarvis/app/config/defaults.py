@@ -12,11 +12,13 @@ DEFAULT_SETTINGS = {
     },
 
     'processing': {
-        'use_gpu': True,
+        'use_gpu': False,
+        'batch_size': 10,
     },
 
     'camera': {
         'channel_order': [90, 45, 135, 0],  # [deg]; top-left, top-right, bottom-left, bottom-right
+        'size': [2048, 2448],  # (Height, Width)
     },
 
     'visualization': {

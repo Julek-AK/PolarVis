@@ -82,8 +82,6 @@ class SettingsDisplayPanel(QFrame):
 
         if dialog.exec():
 
-            settings.update(
-                dialog.edited_settings
-            )
-
+            settings.update(dialog.edited_settings)
             self._load_settings()
+            print("New settings saved!")

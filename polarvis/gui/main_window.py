@@ -6,17 +6,20 @@ import webbrowser
 
 # External
 from PyQt6 import uic
-from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QApplication, QMessageBox, QDialog
 
 # Internal
 from ..app.paths import UI_DIR
+from ..app.config.settings import settings
 
 from ..gui.pipeline_dialog import PipelineDialog
 from ..gui.calibration_dialog import CalibrationDialog
+from ..gui.processing_dialogs import SingleProcessDialog
 from ..gui.window_init import MainWindowConstructor
 from ..gui.window_init import UISettingsController
+from ..gui.export_dialog import ExportDialog
 
-from ..core.pipeline import VideoPipeline
+from ..core.export_control import execute_export
 
 
 class MainWindow(QMainWindow):
@@ -100,25 +103,26 @@ class MainWindow(QMainWindow):
     # IMAGE PROCESSING
     # =============================================
 
-    def run_single_process(self) -> None:
-        # File management
-        filename = self.file_manager.select_file(self)
+    def run_single_process(self) -> None:        
+        # Calibration
+        cal, cal_id = self.calibration_manager.require_current_calibration()
+
+        dialog = SingleProcessDialog(
+            cal_id,
+            self.file_manager,
+            self
+        )
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        
+        filename = dialog.filename
+
         if not filename:
             return
         
         img_id = self.file_manager.get_id(filename)
         img_arr = self.file_manager.load_image(filename)
-
-        # Activate the dialog window        
-        dialog = PipelineDialog(self)
-        if dialog.exec() == 0:
-            return
-        
-        # Calibration
-        # cal_id = dialog.get_calibration_id()
-        # cal, _ = self.calibration_manager.load_calibration(cal_id)
-        # cal, _ = self.calibration_manager.load_calibration("Default_factory_NA")  # TODO remove completely and instead display the selected calibration file
-        cal, cal_id = self.calibration_manager.require_current_calibration()
 
         # Check the cache
         ID = f"{img_id}__{cal_id}" 
@@ -128,8 +132,8 @@ class MainWindow(QMainWindow):
             return
 
         # Callbacks
-        def on_finished(sol_array):
-            self.cache_manager.save_array(ID, sol_array)
+        def on_finished(result):
+            self.cache_manager.save_array(ID, result)
             dialog.close()
             QMessageBox.information(self, "Success", f"Saved results for ID '{ID}'")
 
@@ -137,54 +141,50 @@ class MainWindow(QMainWindow):
             dialog.close()
             QMessageBox.critical(self, "Error", msg)
 
-        def on_warning(msg):
-            QMessageBox.warning(self, "Warning", msg)
+        dialog.process_button.setEnabled(False)
 
-        # Initiate the pipeline
-        self.pipeline.single_process(
-            img_arr,
-            cal,
-            on_finished,
-            on_error,
-            on_warning,
-        )
+        # Setup pipline processing
+        worker = self.pipeline.start_single_processing(img_arr, cal)
+
+        worker.finished.connect(on_finished)
+        worker.error.connect(on_error)
+        worker.start()
 
         dialog.show()
 
         # Refresh the gui with new cache information
         self.frame_view_filters.refresh_cache_list()
 
+
     def run_batch_process(self) -> None:
         raise NotImplementedError
 
     def run_video_process(self) -> None:
         raise NotImplementedError
-
-        cal, cal_id = self.calibration_manager.require_current_calibration()
-
-        INPUT_PATH = r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\Media\Lens Testing Again\bent_ruler.avi"
-        OUTPUT_PATH = r"C:\Users\juliu\OneDrive - Delft University of Technology\Bureaublad\Honours Programme\Media\bent_ruler.mp4"
-
-        pipeline = VideoPipeline(cal)
-        pipeline.process(INPUT_PATH, OUTPUT_PATH)
         
 
     # =============================================
     # FILE HANDLING
     # =============================================
     def load_raw_image(self) -> None:
-        filename = self.file_manager.select_file(self)
+        filename = self.file_manager.select_file(self, settings.get('paths.open_file'))
 
         if not filename: raise ValueError("[Image Loading] No correct file was found")
 
         self.graphicsView.display_image(self, filename)
 
     def export(self) -> None:
-        raise NotImplementedError
+        cached = [str(file.stem) for file in self.cache_manager.list_contents()]
+        dialog = ExportDialog(cached, self)
+
+        if dialog.exec():
+
+            config = dialog.get_configuration()
+            execute_export(config, self.cache_manager)
 
 
     # =============================================
-    # FILE HANDLING
+    # HELP
     # =============================================
 
     def open_github(self) -> None:
@@ -192,6 +192,7 @@ class MainWindow(QMainWindow):
             print("Opened the GitHub repository in browser.")
         else:
             raise RuntimeError("[Menu] Failed to open the default web browser.")
+
 
 def run_main_window():
     app = QApplication(sys.argv)

@@ -5,6 +5,10 @@
             45,
             135,
             0
+        ],
+        "size": [
+            2048,
+            2448
         ]
     },
     "display": {
@@ -13,12 +17,13 @@
     },
     "general": {},
     "paths": {
-        "export_data": "default",
-        "open_file": "default",
+        "export_data": "C:/Users/juliu/OneDrive - Delft University of Technology/Bureaublad/Honours Programme/Media",
+        "open_file": "C:/Users/juliu/OneDrive - Delft University of Technology/Bureaublad/Honours Programme/Media",
         "open_folder": "default",
         "save_visualization": "C:/Users/juliu/OneDrive - Delft University of Technology/Bureaublad/Honours Programme/Pictures For Publishing"
     },
     "processing": {
+        "batch_size": 10,
         "use_gpu": true
     },
     "settings_version": 1,

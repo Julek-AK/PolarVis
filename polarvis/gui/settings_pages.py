@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QLabel,
     QComboBox,
+    QSpinBox,
     QCheckBox,
     QLineEdit,
     QRadioButton,
@@ -177,16 +178,29 @@ class ProcessingSettingsPage(SettingsPage):
 
         layout = QVBoxLayout(self)
 
+        self.batch_size = QSpinBox()
+        self.batch_size.setRange(1, 100)
+
         self.use_gpu_checkbox = QCheckBox("Use GPU acceleration")
         layout.addWidget(self.use_gpu_checkbox)
+        layout.addWidget(QLabel("This requires cuda. Processing speedup results may vary."))
+
+        layout.addWidget(QLabel("Processing batch size:"))
+        layout.addWidget(self.batch_size)
+        layout.addWidget(QLabel("Larger values improve processing times,"))
+        layout.addWidget(QLabel("but cost more memory and lose more data in case of a crash."))
 
         layout.addStretch()
 
     def load(self, settings: dict):
+
         self.use_gpu_checkbox.setChecked(settings['use_gpu'])
+        self.batch_size.setValue(settings['batch_size'])
         
     def save(self, settings: dict):
+
         settings['use_gpu'] = self.use_gpu_checkbox.isChecked()
+        settings['batch_size'] = self.batch_size.value()
 
 
 class CameraSettingsPage(SettingsPage):
@@ -197,16 +211,31 @@ class CameraSettingsPage(SettingsPage):
 
         self.channel_widget = ChannelOrderWidget()
 
+        self.image_height = QSpinBox()
+        self.image_height.setRange(1, 5000)
+
+        self.image_width = QSpinBox()
+        self.image_width.setRange(1, 5000)
+
+        layout.addWidget(QLabel("Default calibration channel order:"))
         layout.addWidget(self.channel_widget)
+        layout.addWidget(QLabel("Default calibration height:"))
+        layout.addWidget(self.image_height)
+        layout.addWidget(QLabel("Default calibration width"))
+        layout.addWidget(self.image_width)
+
         layout.addStretch()
 
     def load(self, settings):
 
         self.channel_widget.set_value(settings['channel_order'])
+        self.image_height.setValue(settings['size'][0])
+        self.image_width.setValue(settings['size'][1])
 
     def save(self, settings):
 
         settings['channel_order'] = (self.channel_widget.value())
+        settings['size'] = [self.image_height.value(), self.image_width.value()]
 
 
 class VisualizationSettingsPage(SettingsPage):
