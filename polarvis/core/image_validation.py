@@ -18,6 +18,7 @@ class ValidationWarning(Exception):
 def validate_calibration(image: np.ndarray, cal) -> None:
     H, W = image.shape
 
+    # Hard errors
     if cal.dark_frame.shape != (H, W):
         raise ValidationError("Dark frame size mismatch")
 
@@ -27,6 +28,6 @@ def validate_calibration(image: np.ndarray, cal) -> None:
     if cal.stokes_reconstruction.shape[:2] != (H//2, W//2):
         raise ValidationError("Stokes matrix size mismatch")
 
-    # Example soft warning
+    # Soft warnings
     if np.any(cal.flat_field < 1e-6):
         raise ValidationWarning("Flat field contains near-zero values")

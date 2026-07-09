@@ -11,6 +11,7 @@ from ..core.visualisation_control import (
     generate_visualisation,
     generate_legend
 )
+from ..app.config.settings import settings
 
 
 class VisualisationPanel(QtWidgets.QFrame):
@@ -157,7 +158,7 @@ class VisualisationPanel(QtWidgets.QFrame):
             )
 
         default_name = f"{self.current_file}_{self.current_visualisation.replace(' ', '_')}"
-        save_path = self.file_manager.select_save_location(self, default_name)
+        save_path = self.file_manager.select_save_location(self, default_name, settings.get('paths.save_visualization'))
 
         if save_path:
             self.file_manager.save_visualisation(save_path, export_image)

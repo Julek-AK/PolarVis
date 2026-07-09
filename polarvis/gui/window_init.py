@@ -13,7 +13,7 @@ from PyQt6.QtGui import QPalette, QColor
 from ..app.streams import TeeStream
 from ..app.config.settings import settings
 
-from ..core.pipeline import ImagePipeline
+from ..core.pipeline import Pipeline
 from ..core.console_redirector import ConsoleRedirector
 from ..core.file_manager import ImageFileManager, CacheManager
 from ..core.calibration_manager import CalibrationManager
@@ -84,7 +84,7 @@ class MainWindowConstructor:
         self.window.calibration_manager = CalibrationManager()
 
     def init_pipelines(self):
-        self.window.pipeline = ImagePipeline()
+        self.window.pipeline = Pipeline()
 
     def init_visualisation(self):
         vis_panel = self.window.frame_view_filters

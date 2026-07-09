@@ -47,7 +47,7 @@ class CacheManager(QtCore.QObject):
     # Public interface
     def list_contents(self) -> list[Path]:
         """Returns a sorted list of files currently contained in the cache"""
-        return sorted(self.cache_dir.glob("*.npy"))
+        return sorted(self.cache_dir.glob("*.npy"))  
 
     def get_array(self, ID: str) -> NDArray | None:
         """Returns a numpy array from the cache, tracked by the ID. In case of multiple valid ones, return the newest"""
@@ -145,13 +145,13 @@ class ImageFileManager:
     def __init__(self) -> None:
         pass
 
-    def select_file(self, parent: QWidget | None = None) -> Path | None:
+    def select_file(self, parent: QWidget | None = None, initial_path=None) -> Path | None:
         """Opens file dialog, returns a validated image path"""
 
         filepath, _ = QFileDialog.getOpenFileName(
             parent,
             "Open Image",
-            "",
+            "" if initial_path is None or initial_path == 'default' else initial_path,
             "Images (*.png *.jpg *.jpeg *.bmp );;All Files (*)"
         )
 
@@ -159,16 +159,46 @@ class ImageFileManager:
             return Path(filepath)
         return None
 
-    def select_folder(self) -> list[Path]:
-        """Opens file dialog, returns a list of valid image paths"""
-        raise NotImplementedError
+    def select_folder(self, parent: QWidget | None, initial_path=None) -> Path | None:
+        """Opens file dialog, returns the selected directory"""
+
+        directory = QFileDialog.getExistingDirectory(
+            parent,
+            "Select Folder",
+            "" if initial_path is None or initial_path == 'default' else initial_path
+        )
+
+        if directory:
+            return Path(directory)
+        return None
     
-    def select_save_location(self, parent, default_name):
+    def browse_directory(self, directory: Path) -> list[Path]:
+        """Returns a list of all valid image paths from the directory"""
+        images = []
+
+        for path in directory.iterdir():
+
+            if (
+                path.is_file()
+                and path.suffix.lower() in [".png", ".jpg", ".jpeg", ".bmp"]
+            ):
+                images.append(path)
+
+        return sorted(images)
+
+    
+    def select_save_location(self, parent, initial_name, initial_path=None):
         """Opens file dialog for selecting file saving location"""
+
+        if initial_path:
+            initial_location = Path(initial_path) / f"{initial_name}.png"
+        else:
+            initial_location = f"{initial_name}.png"
+
         filepath, _ = QFileDialog.getSaveFileName(
             parent, 
             "Save Visualisation", 
-            f"{default_name}.png", 
+            str(initial_location), 
             "Images (*.png *.jpg)"
         )
 

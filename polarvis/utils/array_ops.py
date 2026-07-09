@@ -5,6 +5,7 @@ Utility functions for array operations
 # External Imports
 import numpy as np
 from numpy.typing import NDArray
+import torch
 
 
 def raw_to_metapixels(image_arr: NDArray) -> NDArray:
@@ -37,6 +38,42 @@ def raw_to_metapixel_channels(image_arr: NDArray) -> NDArray:
 
     return out
 
+def raw_to_metapixel_channels_torch(image_arr: torch.Tensor) -> torch.Tensor: 
+    """
+    Convert a raw torch tensor to (H//2, W//2, 4) metapixels
+    Channel order:
+      * 0 = (0,0) top-left
+      * 1 = (0,1) top-right
+      * 2 = (1,0) bottom-left
+      * 3 = (1,1) bottom-right
+    """
+
+    return torch.stack(
+        (
+            image_arr[0::2, 0::2],
+            image_arr[0::2, 1::2],
+            image_arr[1::2, 0::2],
+            image_arr[1::2, 1::2],
+        ),
+        dim=-1
+    )
+
+def raw_to_metapixel_channels_batch_torch(images: torch.Tensor) -> torch.Tensor:
+    """
+    Convert a batch tensor into metapixel channels
+    Input: (N,H,W)
+    Output: (N,H//2,W//2,4)
+    """
+
+    return torch.stack(
+        (
+            images[:,0::2,0::2],
+            images[:,0::2,1::2],
+            images[:,1::2,0::2],
+            images[:,1::2,1::2],
+        ),
+        dim=-1
+    )
 
 def raw_to_metapixels_3d(image_arr: NDArray) -> NDArray:
     """

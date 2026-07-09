@@ -1,123 +1,89 @@
 
+# Builtin
+
+# External
 import torch
 import numpy as np
-from numpy.typing import NDArray
-from PyQt6.QtCore import QThread, pyqtSignal
 
-from ..utils.array_ops import raw_to_metapixel_channels
-from ..core.image_validation import ValidationError, ValidationWarning, validate_calibration
-
-
-class PipelineWorker(QThread):
-    """Threaded worker for safely processing an image"""
-    finished = pyqtSignal(object)
-    error = pyqtSignal(str)
-
-    def __init__(self, img_array, calibration, device):
-        super().__init__()
-        self.img_array = img_array
-        self.calibration = calibration
-        self.device = device
-
-    # Calibrated metapixel proceesing
-    def run(self):
-        from polarvis.processing.torch_backend import calibrated_resolve_polarization
-
-        try:
-            sol_array = calibrated_resolve_polarization(
-                self.img_array,
-                self.calibration,
-            )
-            self.finished.emit(sol_array)
-
-        except Exception as e:
-            self.error.emit(str(e))
-
-    # resolve with a sliding sampling window
-    # def run(self):
-    #     # TODO add calibration adjusting
-    #     from processing.torch_backend import resolve_sliding_polarization
-    #     try:
-    #         sol_array = resolve_sliding_polarization(
-    #             self.img_array,
-    #             self.window_size,
-    #             self.device
-    #         )
-    #         self.finished.emit(sol_array)
-    #     except Exception as e:
-    #         self.error.emit(str(e))
+# Internal
+from ..core.image_validation import validate_calibration, ValidationError, ValidationWarning
+from .worker import ProcessingWorker
+from .processors import SingleProcessor, BatchProcessor, VideoProcessor
+from ..app.config.settings import settings
 
 
-class ImagePipeline():
-    """Maintains system architecture for image processing"""
+class Pipeline:
+
     def __init__(self):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(f"Using device: {self.device}")
 
-
-    def single_process(self, img_array, cal, on_finished, on_error, on_warning=None):
-        """Start threaded processing"""
-
-        try:
-            validate_calibration(img_array, cal)
-
-        except ValidationWarning as w:
-            if on_warning:
-                on_warning(str(w))
+        self._workers = set()
         
-        except ValidationError as e:
-            on_error(str(e))
-            return
+        if settings.get('processing.use_gpu'):
+            if torch.cuda.is_available():
+                self.device = torch.device("cuda")
+            else:
+                print("[Pipeline] Failed to detect cuda, falling back to cpu.")
+                self.device = torch.device("cpu")
+        else:
+            self.device = torch.device("cpu")
 
-        self.worker = PipelineWorker(img_array, cal, self.device)
-        self.worker.finished.connect(on_finished)
-        self.worker.error.connect(on_error)
-        self.worker.start()
 
+    def single_process(self, image, calibration):
 
-# TODO make this actually work not in a scuffed manner
-class VideoPipeline():
-    def __init__(self, cal) -> None:
-        self.cal = cal
+        validate_calibration(image, calibration)
 
-    def process(self, input_path, output_path):
-        import cv2
-        from polarvis.processing.torch_backend import calibrated_resolve_polarization
-        from polarvis.processing.video_processing import arr_to_polarimetric, cleanup_frame
+        processor = SingleProcessor(calibration, self.device)
 
-        cap = cv2.VideoCapture(input_path)
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        return processor.process(image)
 
-        # read first frame to determine output size
-        success, frame = cap.read()
-        if not success:
-            raise RuntimeError("Could not read video")
+    def start_single_processing(self, image, calibration):
 
-        raw = cleanup_frame(frame)
-        polarization = calibrated_resolve_polarization(raw, self.cal)
-        vis = arr_to_polarimetric(polarization)
+        def task():  # Abstract wrapper, such that now the worker doesn't interract with input arguments
+            return self.single_process(image, calibration)
+        
+        def cleanup(_=None):
+            self._workers.discard(worker)
+            print(f"[Pipeline] Worker {worker.worker_id} removed.")
 
-        h, w = vis.shape[:2]
+        worker = ProcessingWorker(task)
+        worker.finished.connect(cleanup)
+        worker.error.connect(lambda msg: print(f"[Pipeline] Worker {worker.worker_id} errored: {msg}"))
+        worker.error.connect(cleanup)
 
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+        self._workers.add(worker)
 
-        writer.write(vis)
+        return worker
 
-        i = 0
-        while True:
-            success, frame = cap.read()
-            if not success:
-                break
+    def batch_process(self, image_list, calibration):
+        
+        validated_image_list = []
 
-            raw = cleanup_frame(frame)
-            polarization = calibrated_resolve_polarization(raw, self.cal)
-            vis = arr_to_polarimetric(polarization)
+        for image in image_list:
+            try:
+                validate_calibration(image, calibration)
+            except ValidationError as e:
+                print(f"[Pipeline] Skipping over an un-validated image: {e}")
+                continue
+            validated_image_list.append(image)
 
-            writer.write(vis)
-            print(f"Processed frame {i} out of {count}")
-            i += 1
+        images = np.stack(validated_image_list, axis=0)
 
-        cap.release()
-        writer.release()
+        processor = BatchProcessor(calibration, self.device)
+
+        return processor.process(images)
+
+    def start_batch_processing(self, image_list, calibration):
+        
+        def task():
+            return self.batch_process(image_list, calibration)
+        
+        worker = ProcessingWorker(task)
+
+        return worker
+
+    def video_process(self, file_in, calibration):
+        ...
+
+    def start_video_processing(self, file_in, calibration):
+        ...
+
