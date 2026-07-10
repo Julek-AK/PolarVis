@@ -27,25 +27,28 @@ class VisualisationResult:
     label: str | None = None
 
 
-def cmap_to_img(img_arr: NDArray, cmap: str) -> Image.Image:
+def cmap_to_arr(img_arr: NDArray, cmap: str) -> NDArray:
     """
-    creates a colormap image from a 0-1 scaled array
+    creates an image-ready array from a 0-1 scaled array
     """
     colormap = plt.get_cmap(cmap)
     colored = colormap(img_arr)
     colored_uint8 = (colored[:, :, :3] * 255).astype(np.uint8)
-    img = Image.fromarray(colored_uint8)
 
-    return img
+    return colored_uint8
 
 
-def pure_intensity(img_data: NDArray, cmap: str ='gray') -> VisualisationResult:
+def pure_intensity(img_data: NDArray, cmap: str ='gray', raw=False) -> VisualisationResult | NDArray:
     """
     Creates a pure colormap of image intensity
     """
     intensity = img_data[..., 0] / 2
-    image = cmap_to_img(intensity, cmap)
-
+    arr = cmap_to_arr(intensity, cmap)
+    
+    if raw:
+        return arr
+    
+    image = Image.fromarray(arr)
     return VisualisationResult(
         image=image,
         cmap=cmap,
@@ -53,13 +56,17 @@ def pure_intensity(img_data: NDArray, cmap: str ='gray') -> VisualisationResult:
     )
 
 
-def pure_DoLP(img_data: NDArray, cmap: str = 'viridis') -> VisualisationResult:
+def pure_DoLP(img_data: NDArray, cmap: str = 'viridis', raw=False) -> VisualisationResult | NDArray:
     """
     Creates a pure colormap of image degree of linear polarization
     """
     dolp = img_data[..., 1]
-    image = cmap_to_img(dolp, cmap)
+    arr = cmap_to_arr(dolp, cmap)
 
+    if raw:
+        return arr
+    
+    image = Image.fromarray(arr)
     return VisualisationResult(
         image=image,
         cmap=cmap,
@@ -67,14 +74,18 @@ def pure_DoLP(img_data: NDArray, cmap: str = 'viridis') -> VisualisationResult:
     )
 
 
-def pure_theta(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
+def pure_AoP(img_data: NDArray, cmap: str = 'hsv', raw=False) -> VisualisationResult | NDArray:
     """
     Creates a pure colormap of image polarization angle, from 0 to pi
     """
     angle = np.mod(img_data[..., 2], np.pi)
     angle_norm = angle / np.pi  # Normalize to [0, 1]
-    image = cmap_to_img(angle_norm, cmap)
+    arr = cmap_to_arr(angle_norm, cmap)
 
+    if raw:
+        return arr
+    
+    image = Image.fromarray(arr)
     return VisualisationResult(
         image=image,
         cmap=cmap,
@@ -82,7 +93,7 @@ def pure_theta(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
     )
 
 
-def polarimetric_colormap(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
+def polarimetric_colormap(img_data: NDArray, cmap: str = 'hsv', raw=False) -> VisualisationResult | NDArray:
     """
     Creates an image with total intensity as brightness, DoLP as saturation and polarization angle as hue
     """
@@ -100,8 +111,11 @@ def polarimetric_colormap(img_data: NDArray, cmap: str = 'hsv') -> Visualisation
 
     rgb = hsv_to_rgb_vec(hsv)
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
-    image = Image.fromarray(rgb_uint8)
 
+    if raw:
+        return rgb_uint8
+    
+    image = Image.fromarray(rgb_uint8)
     return VisualisationResult(
         image=image,
         cmap=cmap,
@@ -109,7 +123,7 @@ def polarimetric_colormap(img_data: NDArray, cmap: str = 'hsv') -> Visualisation
     )
 
 
-def polar_data(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
+def polar_data(img_data: NDArray, cmap: str = 'hsv', raw=False) -> VisualisationResult | NDArray:
     """
     Displays exclusively polarization data, neglecting original image brightness
     """
@@ -125,8 +139,11 @@ def polar_data(img_data: NDArray, cmap: str = 'hsv') -> VisualisationResult:
 
     rgb = hsv_to_rgb_vec(hsv)
     rgb_uint8 = (np.clip(rgb, 0, 1) * 255).astype(np.uint8)
-    image = Image.fromarray(rgb_uint8)
 
+    if raw:
+        return rgb_uint8
+
+    image = Image.fromarray(rgb_uint8)
     return VisualisationResult(
         image=image,
         cmap=cmap,

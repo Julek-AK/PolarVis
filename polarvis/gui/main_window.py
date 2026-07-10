@@ -29,6 +29,7 @@ from ..gui.window_init import UISettingsController
 from ..gui.export_dialog import ExportDialog
 
 from ..core.export_control import execute_export
+from ..io.video import check_ffmpeg_available
 
 
 class MainWindow(QMainWindow):
@@ -135,16 +136,19 @@ class MainWindow(QMainWindow):
 
         # Check the cache
         ID = f"{img_id}__{cal_id}" 
-        cached = self.cache_manager.get_array(ID)
-        if cached is not None:
+        if self.cache_manager.cache_check(ID):
             QMessageBox.information(self, "Cache hit!", f"Result for ID '{ID}' is available in the cache")
             return
 
         # Callbacks
         def on_finished(result):
             self.cache_manager.save_array(ID, result)
+
             dialog.close()
+
             QMessageBox.information(self, "Success", f"Saved results for ID '{ID}'")
+
+            self.frame_view_filters.refresh_cache_list()
 
         def on_error(msg):
             dialog.close()
@@ -161,10 +165,6 @@ class MainWindow(QMainWindow):
 
         dialog.show()
 
-        # Refresh the gui with new cache information
-        self.frame_view_filters.refresh_cache_list()
-
-
     def run_batch_process(self) -> None:
         # Calibration
         cal, cal_id = self.calibration_manager.require_current_calibration()
@@ -178,12 +178,106 @@ class MainWindow(QMainWindow):
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         
+        # Extract all the files
+        directory = dialog.directory
+        file_list = self.file_manager.browse_directory(directory)
 
-        raise NotImplementedError
+        tasks = []
+        for filename in file_list:
+            img_id = self.file_manager.get_id(filename)
+
+            # Cache check
+            ID = f"{img_id}__{cal_id}" 
+            if self.cache_manager.cache_check(ID):
+                print(f"[Pipeline] The result for ID '{ID}' is available in cache!")
+                continue
+        
+            img_arr = self.file_manager.load_image(filename)
+            tasks.append((img_arr, img_id))
+
+        # Callbacks
+        def on_finished(result):
+
+            dialog.close()
+
+            QMessageBox.information(self, "Success", f"Completed batch processing!")
+
+            self.frame_view_filters.refresh_cache_list()
+
+        def on_error(msg):
+            dialog.close()
+            QMessageBox.critical(self, "Error", msg)
+
+        # Setup pipline processing
+        worker = self.pipeline.start_batch_processing(tasks, cal, cal_id)
+
+        worker.finished.connect(on_finished)
+        worker.error.connect(on_error)
+        worker.start()
+
+        dialog.show()
+
 
     def run_video_process(self) -> None:
+
+        QMessageBox.critical(
+            self,
+            "Not Implemented",
+            "Unfortunately, video processing is currently broken "
+            "and will hopefully be made working in a future patch. "
+            "In the meantime, don't stop recording videos, "
+            "you'll process them soon!"
+        )
+
         raise NotImplementedError
+
+        # FFmpeg check
+        if not check_ffmpeg_available():
+
+            QMessageBox.critical(
+                self,
+                "FFmpeg unavailable",
+                "FFmpeg was not found on this system.\n\n"
+                "Video processing requires FFmpeg to be installed "
+                "and available on PATH."
+            )
+
+            return
+    
+        # Calibration
+        cal, cal_id = self.calibration_manager.require_current_calibration()
+
+        dialog = VideoProcessDialog(
+            cal_id,
+            self.file_manager,
+            self
+        )
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
         
+        # Get dialog data
+        input_path, output_directory, visualisations = dialog.get_data()
+        
+        # Callbacks
+        def on_finished(result):
+
+            dialog.close()
+
+            QMessageBox.information(self, "Success", "Completed video processing!")
+
+        def on_error(msg):
+            dialog.close()
+            QMessageBox.critical(self, "Error", msg)
+
+        # Start processing
+        worker = self.pipeline.start_video_processing(input_path, output_directory, visualisations, cal)
+
+        worker.finished.connect(on_finished)
+        worker.error.connect(on_error)
+        worker.start()
+
+        dialog.show()
 
     # =============================================
     # FILE HANDLING
@@ -191,7 +285,7 @@ class MainWindow(QMainWindow):
     def load_raw_image(self) -> None:
         filename = self.file_manager.select_file(self, settings.get('paths.open_file'))
 
-        if not filename: raise ValueError("[Image Loading] No correct file was found")
+        if not filename: raise ValueError("[Image Loading] No correct file was found.")
 
         self.graphicsView.display_image(self, filename)
 

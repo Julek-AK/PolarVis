@@ -36,7 +36,7 @@ VISUALISATIONS: dict[str, VisualisationDefinition] = {
 
     'Pure AoP': VisualisationDefinition(
         name="Pure AoP",
-        generator=vis.pure_theta,
+        generator=vis.pure_AoP,
         legend_renderer=legend.angle_legend,
         colormap=settings.get('visualization.colormaps.aop'),
     ),

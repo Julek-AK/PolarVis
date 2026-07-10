@@ -84,7 +84,7 @@ class MainWindowConstructor:
         self.window.calibration_manager = CalibrationManager()
 
     def init_pipelines(self):
-        self.window.pipeline = Pipeline()
+        self.window.pipeline = Pipeline(self.window.cache_manager)
 
     def init_visualisation(self):
         vis_panel = self.window.frame_view_filters

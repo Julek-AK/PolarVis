@@ -48,18 +48,20 @@ class CacheManager(QtCore.QObject):
     def list_contents(self) -> list[Path]:
         """Returns a sorted list of files currently contained in the cache"""
         return sorted(self.cache_dir.glob("*.npy"))  
+    
+    def cache_check(self, ID: str) -> bool:
+        """Checks whether an ID is present in the cache"""
+        return any(self.cache_dir.glob(f"{ID}*.npy"))
 
     def get_array(self, ID: str) -> NDArray | None:
-        """Returns a numpy array from the cache, tracked by the ID. In case of multiple valid ones, return the newest"""
-        matching_files = []
-        for file in self.cache_dir.glob(f"{ID}*"):
-            matching_files.append(Path(file).name)
+        """Returns a numpy array from the cache, tracked by ID. In case of multiple valid ones, return the newest"""
+        matching_files = sorted(self.cache_dir.glob(f"{ID}*.npy"))
 
-        if matching_files:
-            matching_files.sort()
-            filename = matching_files[-1]
-            return np.load(self.cache_dir / filename, allow_pickle=False)
-        return None
+        if not matching_files:
+            raise FileNotFoundError(f"[CacheManager] No cached array found for ID '{ID}'")
+
+        return np.load(matching_files[-1], allow_pickle=False)
+
 
     def save_array(self, ID: str, array: NDArray):
         """Securely saves a numpy array into the cache"""
@@ -120,7 +122,7 @@ class CacheManager(QtCore.QObject):
     def _get_filename(self, ID: str, suffix: str=".npy") -> Path:
         """Generates a canonical filename for a given ID"""
         ID = Path(ID).name
-        timestamp = time.strftime(r"%Y%m%d_%H%M%S")
+        timestamp = time.strftime(r"%Y%m%d_%H%M%S")  # We like this format since it lexicographically sorts into oldest-first
         return self.cache_dir / f"{ID}_{timestamp}{suffix}"
 
 
@@ -153,6 +155,20 @@ class ImageFileManager:
             "Open Image",
             "" if initial_path is None or initial_path == 'default' else initial_path,
             "Images (*.png *.jpg *.jpeg *.bmp );;All Files (*)"
+        )
+
+        if filepath:
+            return Path(filepath)
+        return None
+    
+    def select_video(self, parent: QWidget | None = None, initial_path=None) -> Path | None:
+        """Opens file dialog, returns a validated video path"""
+
+        filepath, _ = QFileDialog.getOpenFileName(
+            parent,
+            "Open Image",
+            "" if initial_path is None or initial_path == 'default' else initial_path,
+            "Videos (*.mp4 *.mkv *.mov *.avi );;All Files (*)"
         )
 
         if filepath:
