@@ -122,3 +122,4 @@ config_local.yaml
 
 # Local scripts
 local/
+tests/
