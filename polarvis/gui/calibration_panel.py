@@ -36,10 +36,7 @@ class CalibrationPanel(QtWidgets.QFrame):
 
     calibration_changed = QtCore.pyqtSignal(object)
 
-    def __init__(
-        self,
-        parent=None,
-    ):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.current_calibration_id: Optional[str] = None
@@ -47,8 +44,6 @@ class CalibrationPanel(QtWidgets.QFrame):
 
         self._build_ui()
         self._connect_signals()
-
-
 
     def connect_manager(self, calibration_manager):
         """Provide the managers after UI load."""
@@ -169,10 +164,9 @@ class CalibrationPanel(QtWidgets.QFrame):
 
         self.calibration_combo.blockSignals(False)
 
-        # Automatically load first entry
-        self._on_calibration_selected(
-            self.calibration_combo.currentText()
-        )
+        # Force selected entry to be the default calibration and load it
+        self.calibration_combo.setCurrentText('Default_factory')
+        self._on_calibration_selected(self.calibration_combo.currentText())
 
     def get_current_calibration_id(self) -> Optional[str]:
         return self.current_calibration_id
@@ -191,13 +185,8 @@ class CalibrationPanel(QtWidgets.QFrame):
             
         except Exception as exc:
             self.current_metadata = None
-
             self.info_tree.clear()
-
-            self.status_label.setText(
-                f"Failed to load calibration metadata:\n{exc}"
-            )
-
+            self.status_label.setText(f"Failed to load calibration metadata:\n{exc}")
             return
 
         self.current_calibration_id = calibration_id
@@ -277,9 +266,7 @@ class CalibrationPanel(QtWidgets.QFrame):
         if isinstance(value, (list, tuple)):
 
             if len(value) > 10:
-                return (
-                    f"[{', '.join(map(str, value[:10]))}, ...]"
-                )
+                return f"[{', '.join(map(str, value[:10]))}, ...]"
 
             return str(list(value))
 
