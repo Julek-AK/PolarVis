@@ -27,8 +27,6 @@ from PyQt6 import QtCore
 
 
 FILE_FORMAT_VERSION = 1
-DEFAULT_CALIBRATION_CHANNELS = settings.get('camera.channel_order')
-
 
 
 class CalibrationManager(QtCore.QObject):
@@ -44,7 +42,8 @@ class CalibrationManager(QtCore.QObject):
         self.cal_dir.mkdir(parents=True, exist_ok=True)
 
         if not self._has_default():
-            default = self._create_default_calibration((2048, 2448))
+            H, W = settings.get('camera.size')
+            default = self._create_default_calibration((H, W))
             self.save_calibration(
                 default,
                 {   
@@ -52,7 +51,7 @@ class CalibrationManager(QtCore.QObject):
                     'file_type': "polarimeter_calibration",
                     'format_version': FILE_FORMAT_VERSION,
                     'timestamp': "NA",
-                    'shape': (2048, 2448),
+                    'shape': (H, W),
                     'bit_depth': 8,
                 }
             )
@@ -263,7 +262,8 @@ class CalibrationManager(QtCore.QObject):
         return compatible[0]
 
     def _has_default(self) -> bool:
-        ...
+        # TODO implement proper default checking, probably necessitating dynamic checking of the default size and mosaic angles
+        return False
 
     def _create_default_calibration(self, shape: Tuple[int, int]) -> Calibration:
         """Construct the default calibration, with 0 dark frame, 1 flat field, 
@@ -277,7 +277,7 @@ class CalibrationManager(QtCore.QObject):
         flat = np.ones(shape)
 
         # Polarization reconstruction
-        PHIS = np.array(DEFAULT_CALIBRATION_CHANNELS)
+        PHIS = np.array(settings.get('camera.channel_order'))
         PHIS = np.radians(PHIS)
 
         A = 0.5 * np.stack([
