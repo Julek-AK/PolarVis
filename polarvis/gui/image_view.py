@@ -1,11 +1,12 @@
 
 # Builtins
-from PIL import Image
+
 
 # External Imports
-from PyQt6.QtWidgets import QGraphicsView, QGraphicsPixmapItem, QGraphicsScene
+from PyQt6.QtWidgets import QGraphicsView, QGraphicsPixmapItem
 from PyQt6.QtGui import QPainter, QPixmap, QImage
 from PyQt6 import QtCore
+from PIL import Image
 
 # Internal Support
 

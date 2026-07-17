@@ -6,7 +6,7 @@ Dedicated class for initializing all the functionality of the MainWindow
 import sys
 
 # External libraries
-from PyQt6.QtWidgets import QGraphicsScene, QVBoxLayout, QApplication
+from PyQt6.QtWidgets import QGraphicsScene, QApplication
 from PyQt6.QtGui import QPalette, QColor
 
 # Internal Support
@@ -17,8 +17,6 @@ from ..core.pipeline import Pipeline
 from ..core.console_redirector import ConsoleRedirector
 from ..core.file_manager import ImageFileManager, CacheManager
 from ..core.calibration_manager import CalibrationManager
-from ..gui.visualisation_panel import VisualisationPanel
-from ..gui.calibration_panel import CalibrationPanel
 
 
 class MainWindowConstructor:

@@ -1,30 +1,30 @@
 
-# Bultins
-import os
+# Bultin
 from pathlib import Path
-from PIL import Image
 from typing import Dict, Optional, Tuple, List
 from datetime import datetime
 import json
 import re
 import unicodedata
 
-# Internal support
+# External
+import numpy as np
+from numpy.typing import NDArray
+from PyQt6 import QtCore
+from PIL import Image
+
+# Internal
 from ..app.config.settings import settings
 from ..app.paths import CALIBRATION_DIR
 from ..processing.calibration import Calibration, CalibrationInput, CalibrationConstructor
 
-# External libraries
-import numpy as np
-from numpy.typing import NDArray, DTypeLike
-from PyQt6.QtWidgets import QWidget, QFileDialog
-from PyQt6 import QtCore
 
 # TODO improve robustness of metadata/config separation for calibration
 # TODO create seperate serializable config parameters that also get embedded in the .calib files
 # TODO serialize the used polarization model (sicne in the future many might be available)
 # TODO serialize the actual calibration method used (since in the future many might be available)
 
+# TODO dispatch calibration computation to a worker
 
 FILE_FORMAT_VERSION = 1
 

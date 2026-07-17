@@ -1,13 +1,16 @@
+
+# Builtin
+from typing import Dict
+from pathlib import Path
+
+# External
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QSpinBox, QDoubleSpinBox, QFileDialog, QMessageBox
 )
 from PyQt6 import QtCore
-from pathlib import Path
 import numpy as np
 from PIL import Image
-from typing import Dict, Optional
-from datetime import datetime
 
 # Internal
 from ..processing.calibration import CalibrationInput, PolarizerModel

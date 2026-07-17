@@ -3,7 +3,6 @@
 
 # External
 import torch
-import numpy as np
 
 # Internal
 from ..core.image_validation import validate_calibration, ValidationError, ValidationWarning

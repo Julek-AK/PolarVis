@@ -1,7 +1,8 @@
 
+# Builtin
 
+# External
 from matplotlib import colormaps
-
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -17,6 +18,9 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QFileDialog,
 )
+
+# Internal
+
 
 class DirectorySelectorWidget(QWidget):
     """Widget for determining savepath directories"""

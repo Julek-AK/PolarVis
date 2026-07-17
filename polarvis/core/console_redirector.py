@@ -1,6 +1,13 @@
+
+# Builtin
 import sys
 import traceback
+
+# External
 from PyQt6.QtCore import QObject, pyqtSignal
+
+# Internal
+
 
 class ConsoleRedirector(QObject):
     """Redirects any interraction with the python console to instead be displayed within the app"""

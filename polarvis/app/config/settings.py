@@ -2,7 +2,7 @@
 Centralised manager for PolarVis system settings
 """
 
-# Builtins
+# Builtin
 from copy import deepcopy
 import json
 

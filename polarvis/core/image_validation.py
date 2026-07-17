@@ -1,11 +1,10 @@
 
+# Builtin
 
-# External libraries
+# External
 import numpy as np
 
-
-# Internal support
-
+# Internal
 
 
 class ValidationError(Exception):

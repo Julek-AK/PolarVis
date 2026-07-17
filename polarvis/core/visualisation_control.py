@@ -11,6 +11,7 @@ from ..processing import image_visualisation as vis
 from ..processing import image_legend as legend
 from ..app.config.settings import settings
 
+
 @dataclass
 class VisualisationDefinition:
     name: str

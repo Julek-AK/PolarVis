@@ -1,11 +1,10 @@
 
-# Builtins
+# Builtin
 
-# External Libraries
+# External
 from PyQt6 import QtWidgets, QtGui, QtCore
-import numpy as np
 
-# Internal Support
+# Internal
 from ..core.visualisation_control import (
     list_visualisations,
     generate_visualisation,

@@ -7,7 +7,7 @@ from pathlib import Path
 # External
 import numpy as np
 from numpy.typing import NDArray
-import cv2
+
 
 # Internal
 from ..processing.torch_backend import (

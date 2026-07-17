@@ -2,7 +2,6 @@
 # Builtin
 
 # External
-from numpy.typing import NDArray
 from PyQt6.QtCore import QThread, pyqtSignal
 
 # Internal

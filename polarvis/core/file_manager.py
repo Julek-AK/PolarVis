@@ -2,23 +2,23 @@
 File Managers for mainting a controlled cache, selecting files for processing, outputting files etc.
 """
 
-# Builtins
+# Builtin
 import os
 import time
 from pathlib import Path
-from PIL import Image
+
 import re
 import unicodedata
 
-# External Libraries
+# External
 from numpy.typing import NDArray
 import numpy as np
 from PyQt6.QtWidgets import QWidget, QFileDialog
 from PyQt6 import QtCore
+from PIL import Image
 
-# Internal support
+# Internal
 from ..app.paths import CACHE_DIR
-
 
 
 class CacheManager(QtCore.QObject):

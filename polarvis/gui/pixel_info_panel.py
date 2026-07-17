@@ -9,9 +9,11 @@ import numpy as np
 # Internal Support
 from ..app.config.settings import settings
 
+
 INTENSITY_CMAP = settings.get('visualization.colormaps.intensity')
 DOLP_CMAP = settings.get('visualization.colormaps.dolp')
 AOP_CMAP = settings.get('visualization.colormaps.aop')
+
 
 class PixelInfoPanel(QtWidgets.QFrame):
     def __init__(self, parent=None):

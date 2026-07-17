@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 # Internal
 from ..gui.settings_pages import *
 
+
 SETTINGS_PAGES = {  # These names must match the ones found in setting defaults
     'general': GeneralSettingsPage,
     'display': DisplaySettingsPage,

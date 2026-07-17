@@ -6,7 +6,6 @@ from pathlib import Path
 
 # External
 
-
 # Internal
 from ..io.export import *
 from ..io.formats import polar_to_stokes
