@@ -17,6 +17,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+release_env/
 
 # Distribution / packaging
 build/
