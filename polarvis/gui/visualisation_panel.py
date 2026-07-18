@@ -161,4 +161,5 @@ class VisualisationPanel(QtWidgets.QFrame):
 
         if save_path:
             self.file_manager.save_visualisation(save_path, export_image)
+            print(f"[Visualisation] Saved file '{save_path}'.")
 

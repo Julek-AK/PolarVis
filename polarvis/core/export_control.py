@@ -47,7 +47,7 @@ def export_array(array, name, representation, directory, file_format):
 
 def execute_export(config: ExportConfig, cache_manager) -> None:
 
-    print(f"Exporting {len(config.results)} result(s)...")
+    print(f"[Exporting] Exporting {len(config.results)} result(s)...")
 
     config.save_directory.mkdir(
         parents=True,
@@ -63,7 +63,7 @@ def execute_export(config: ExportConfig, cache_manager) -> None:
                 config.representation
             )
             
-            print(f"  Exporting '{result_id}'")
+            print(f"[Exporting] '{result_id}'")
             
             export_array(
                 array,
@@ -75,6 +75,6 @@ def execute_export(config: ExportConfig, cache_manager) -> None:
 
             
     print(
-        f"Successfully exported {len(config.results)} "
+        f"[Exporting] Successfully exported {len(config.results)} "
         f"result(s) to '{config.save_directory}'."
     )
