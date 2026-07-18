@@ -12,7 +12,7 @@ DEFAULT_SETTINGS = {
     },
 
     'processing': {
-        'use_gpu': False,
+        'use_gpu': True,
         'batch_size': 10,
     },
 
