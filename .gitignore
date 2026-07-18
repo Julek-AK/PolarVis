@@ -104,7 +104,7 @@ cache/
 tmp/
 output/
 out/
-data/
+data/calibration/
 
 # Intermediate data
 *.npy
