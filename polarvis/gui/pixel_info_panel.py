@@ -5,6 +5,7 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
 from numpy import degrees
 import numpy as np
+from matplotlib import colormaps
 
 # Internal Support
 from ..app.config.settings import settings
@@ -92,14 +93,13 @@ class ColorScaleWidget(QtWidgets.QWidget):
 
     def _generate_gradient(self):
         """Generate and cache gradient pixmap"""
-        from matplotlib import cm
 
         w = self.width()
         h = self.height()
         if w <= 0 or h <= 0:
             return
 
-        cmap = cm.get_cmap(self.cmap_name)
+        cmap = colormaps[self.cmap_name]
 
         gradient = np.linspace(0, 1, w)
         gradient = np.tile(gradient, (h, 1))
