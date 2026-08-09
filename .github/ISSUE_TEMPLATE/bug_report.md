@@ -1,11 +1,10 @@
 ---
-
 name: Bug report
 about: Report something that is not working as expected
 title: "[BUG] "
 labels: bug
 assignees: ''
--------------
+---
 
 ## Description
 
